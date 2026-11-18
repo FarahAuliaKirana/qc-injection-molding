@@ -1,0 +1,6 @@
+# Library tambahan untuk notebook dan tes. Tidak ikut di-install saat deploy.
+-r requirements.txt
+ipykernel
+matplotlib
+pytest
+httpx
