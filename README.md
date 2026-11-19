@@ -91,8 +91,7 @@ flowchart LR
 ## Data dan pembersihan
 
 Data mentah (`data/raw.csv`) berisi **25.350 siklus cetak** dari empat mesin (IM-01 sampai IM-04) selama Maret sampai
-Juni 2026, dengan sekitar **8% komponen cacat**. Setelah dibersihkan tersisa **25.000 baris** (`data/bersih.csv`,
-dibuat ulang oleh notebook).
+Juni 2026, dengan sekitar **8% komponen cacat**. Setelah dibersihkan tersisa **25.000 baris** (`data/bersih.csv`).
 
 | Kolom | Arti |
 |---|---|
@@ -228,7 +227,8 @@ saat dipakai di aplikasi. Library tambahan untuk notebook dan pengujian ada di `
 ```
 qc-injection-molding/
 ├── data/
-│   └── raw.csv                  # data mentah (bersih.csv dibuat ulang oleh notebook)
+│   ├── raw.csv                  # data mentah dari klien
+│   └── bersih.csv               # data setelah dibersihkan (hasil notebook bagian 3)
 ├── notebooks/
 │   └── qc_injection_molding.ipynb  # dari EDA sampai penyimpanan model
 ├── src/
@@ -330,7 +330,7 @@ pytest
 - Kerja langsung di `main`. Perubahan yang menyangkut bagian orang lain dibicarakan dulu, baru di-push.
 - Selalu `git pull` sebelum mulai kerja dan sebelum push.
 - Setelah bagian 4, notebook hanya diubah oleh pemilik Bagian A supaya tidak terjadi konflik.
-- `artifacts/` wajib di-commit. `data/bersih.csv`, `.venv/`, `artifacts_dummy/`, dan `.streamlit/secrets.toml` tidak
+- `artifacts/` dan `data/bersih.csv` wajib di-commit. `.venv/`, `artifacts_dummy/`, dan `.streamlit/secrets.toml` tidak
   di-commit.
 
 Aturan lengkap ada di [PRD §17](docs/PRD.md#17-alur-kerja-git).

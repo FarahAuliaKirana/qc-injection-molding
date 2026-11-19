@@ -4,9 +4,6 @@ __pycache__/
 .ipynb_checkpoints/
 .pytest_cache/
 
-# data turunan, dibuat ulang oleh notebook dari data/raw.csv
-data/bersih.csv
-
 # model sementara untuk pengembangan API (scripts/buat_model_dummy.py)
 artifacts_dummy/
 

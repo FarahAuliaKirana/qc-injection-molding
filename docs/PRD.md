@@ -707,8 +707,9 @@ flowchart LR
 - Pesan *commit* berbahasa Indonesia, singkat, dan menjelaskan isi, misalnya `API: validasi masukan dan pesan galat`.
 - *Commit* dibuat oleh anggota tim dengan akun GitHub masing-masing, dan email Git harus terdaftar di akun GitHub supaya
   tercatat sebagai kontributor. Jangan menambahkan *trailer* `Co-authored-by` untuk alat bantu.
-- `artifacts/` **wajib** di-commit. `data/bersih.csv`, `.venv/`, `artifacts_dummy/`, dan `.streamlit/secrets.toml`
-  tidak di-commit.
+- `artifacts/` dan `data/bersih.csv` **wajib** di-commit. `data/bersih.csv` dipakai B untuk model *dummy* dan tes,
+  dan diminta di titik periksa 1. Kalau notebook bagian 3 diubah, jalankan ulang lalu commit lagi `bersih.csv`.
+- `.venv/`, `artifacts_dummy/`, dan `.streamlit/secrets.toml` tidak di-commit.
 
 ## 18. Pengujian dan kriteria penerimaan
 
