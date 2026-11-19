@@ -327,8 +327,8 @@ pytest
 
 ## Alur kontribusi
 
-- Perubahan masuk ke `main` melalui *pull request* yang ditinjau anggota lain.
-- *Branch* `a/<topik>` untuk Bagian A (model) dan `b/<topik>` untuk Bagian B (aplikasi).
+- Kerja langsung di `main`. Perubahan yang menyangkut bagian orang lain dibicarakan dulu, baru di-push.
+- Selalu `git pull` sebelum mulai kerja dan sebelum push.
 - Setelah bagian 4, notebook hanya diubah oleh pemilik Bagian A supaya tidak terjadi konflik.
 - `artifacts/` wajib di-commit. `data/bersih.csv`, `.venv/`, `artifacts_dummy/`, dan `.streamlit/secrets.toml` tidak
   di-commit.

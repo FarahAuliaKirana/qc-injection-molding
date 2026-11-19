@@ -427,8 +427,8 @@ fitur, aturan S5, dan README.
 
 Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
 
-"Pemilik" adalah satu-satunya orang yang mengubah file di area itu. "Peninjau" membaca dan memberi komentar di
-*pull request*. Pembagian ini mencegah konflik, terutama pada file notebook yang sangat sulit di-*merge*.
+"Pemilik" adalah satu-satunya orang yang mengubah file di area itu. "Peninjau" membaca dan memberi masukan
+sebelum perubahan dianggap selesai. Pembagian ini mencegah konflik, terutama pada file notebook yang sangat sulit di-*merge*.
 
 ## 14. Alur pengerjaan Bagian A · Model
 
@@ -447,7 +447,7 @@ Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
 - Impor ulang dari `src.features`, lalu uji: jumlah baris tetap, DataFrame asli tidak berubah, NaN tidak membuat galat,
   dan nilai fitur sesuai hitungan manual untuk beberapa baris.
 - Tambahkan sel ✅ Cek bagian 5.
-- *Push* lebih awal lewat *pull request* supaya B bisa memakai konstanta dan menulis tes fitur (titik **M1**).
+- *Push* lebih awal supaya B bisa memakai konstanta dan menulis tes fitur (titik **M1**).
 
 **Selesai jika:** `src/features.py` ada di `main` dan sel ✅ bagian 5 lolos.
 
@@ -472,7 +472,7 @@ Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
 
 - Simpan *baseline* ke `artifacts/` (versi `0.1.0`) dengan *threshold* sementara dari *validation*. Data *test* belum
   dibuka.
-- *Push* lewat *pull request* (titik **MB**) supaya B bisa deploy lebih awal.
+- *Push* (titik **MB**) supaya B bisa deploy lebih awal.
 
 **Selesai jika:** PR-AUC *validation baseline* tercatat dan artefak *baseline* sudah ada di `main`.
 
@@ -509,7 +509,7 @@ Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
 - Muat ulang dari file, lalu cek: prediksi sama dengan model di memori, satu baris dengan NaN bisa diprediksi, dan
   `metadata.json` berisi semua kunci yang diwajibkan.
 - *Restart kernel* lalu *Run All* untuk memastikan notebook berjalan dari awal sampai akhir.
-- *Push* lewat *pull request* (titik **M3**).
+- *Push* (titik **M3**).
 
 **Selesai jika:** artefak ada di `main` dan B memastikan API berjalan dengan model ini.
 
@@ -517,7 +517,7 @@ Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
 
 - Isi README: tabel hasil, *threshold* dan alasannya, keterbatasan model.
 - Tulis bagian laporan tentang data, model, dan evaluasi, termasuk fitur yang paling berpengaruh.
-- Tinjau *pull request* B, khususnya aturan saran tindakan dan kontrak masukan.
+- Tinjau pekerjaan B, khususnya aturan saran tindakan dan kontrak masukan.
 
 ## 15. Alur pengerjaan Bagian B · Aplikasi
 
@@ -528,7 +528,6 @@ Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
 - Sepakati kontrak [§11](#11-kontrak-antarmuka) bersama A (titik **M0**).
 - Pastikan `.venv` memakai Python 3.12.
 - Kode dari repo P3 boleh dipakai sebagai dasar supaya lebih cepat.
-- Buat *branch* `b/api`.
 
 **Selesai jika:** kontrak disepakati dan lingkungan siap.
 
@@ -608,13 +607,13 @@ pesan yang jelas.
 - `test_api.py`: `TestClient` untuk semua kasus di [§18](#18-pengujian-dan-kriteria-penerimaan).
 - `test_saran.py`: aturan S1–S8.
 - `test_features.py` (setelah M1): `buat_fitur` tidak mengubah masukan, tahan NaN, dan nilainya sesuai hitungan manual.
-- Jalankan `pytest` hingga semua lolos, lalu buka *pull request* `b/api` ke `main`.
+- Jalankan `pytest` hingga semua lolos, lalu *push*.
 
-**Selesai jika:** `pytest` lolos semua dan A sudah meninjau PR (titik **M2**, bagian API).
+**Selesai jika:** `pytest` lolos semua dan A sudah meninjau (titik **M2**, bagian API).
 
 ### B7 · Aplikasi Streamlit
 
-- *Branch* `b/ui`. Form satu kolom: `mesin`, `bahan`, lalu parameter proses. Kolom opsional diberi kotak centang
+- Form satu kolom: `mesin`, `bahan`, lalu parameter proses. Kolom opsional diberi kotak centang
   "belum diukur".
 - Saat `bahan` diganti, nilai awal suhu leleh dan suhu cetakan mengikuti standar bahan itu.
 - `number_input` diberi batas yang sama dengan batas keras API.
@@ -661,7 +660,7 @@ Dikerjakan setelah **M2** dan **MB**, sebelum titik periksa 2 (aplikasi sudah ha
 - Isi README: cara menjalankan, tautan aplikasi dan API, struktur repositori final.
 - Tulis bagian laporan tentang aplikasi, cara pakai, dan keterbatasan sistem.
 - Siapkan rekaman layar demo aplikasi untuk video.
-- Tinjau *pull request* A, khususnya `metadata.json` dan `features.py`.
+- Tinjau pekerjaan A, khususnya `metadata.json` dan `features.py`.
 
 ## 16. Titik sinkronisasi
 
@@ -701,12 +700,11 @@ flowchart LR
 
 ## 17. Alur kerja Git
 
-- `main` selalu dalam keadaan bisa dijalankan. Perubahan masuk lewat *pull request* yang ditinjau anggota lain.
-- Nama *branch*: `a/<topik>` untuk Bagian A (misalnya `a/fitur`, `a/model`) dan `b/<topik>` untuk Bagian B
-  (misalnya `b/api`, `b/ui`, `b/deploy`).
+- Kerja langsung di `main`. Perubahan yang menyangkut bagian orang lain dibicarakan dulu, baru di-push.
+- `main` selalu dalam keadaan bisa dijalankan. Jangan push kode yang masih error.
 - Hanya pemilik area yang mengubah file di area itu ([§13](#13-pembagian-peran)). **Notebook hanya diubah oleh A**
   setelah bagian 4.
-- Selalu `git pull` sebelum membuat *branch* baru.
+- Selalu `git pull` sebelum mulai kerja dan sebelum push.
 - Pesan *commit* berbahasa Indonesia, singkat, dan menjelaskan isi, misalnya `API: validasi masukan dan pesan galat`.
 - *Commit* dibuat oleh anggota tim dengan akun GitHub masing-masing, dan email Git harus terdaftar di akun GitHub supaya
   tercatat sebagai kontributor. Jangan menambahkan *trailer* `Co-authored-by` untuk alat bantu.
