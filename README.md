@@ -85,7 +85,8 @@ flowchart LR
 1. Notebook membersihkan data, membuat fitur, melatih model, lalu menyimpan `artifacts/model.joblib`,
    `artifacts/metadata.json`, dan `src/features.py`.
 2. API memuat model, memvalidasi masukan, lalu menghitung probabilitas, keputusan, dan saran.
-3. Aplikasi Streamlit menyediakan form untuk operator dan menampilkan hasil dari API.
+3. Aplikasi Streamlit menyediakan form untuk operator dan menampilkan hasil dari API. Kalau API tidak bisa dihubungi,
+   aplikasi memuat model sendiri.
 
 ## Data dan pembersihan
 
@@ -295,8 +296,8 @@ uvicorn app.api.main:app --reload       # API di http://127.0.0.1:8000 (dokument
 streamlit run app/ui/streamlit_app.py   # aplikasi di http://localhost:8501
 ```
 
-Aplikasi membaca URL API dari `.streamlit/secrets.toml` (salin dari `.streamlit/secrets.toml.example`). Jika file itu
-tidak ada, aplikasi memakai `http://127.0.0.1:8000`.
+Aplikasi membaca URL API dari `.streamlit/secrets.toml` (salin dari `.streamlit/secrets.toml.example`). Kalau
+`API_URL` tidak diisi, aplikasi langsung memuat model sendiri tanpa API.
 
 ### 4. Menjalankan pengujian
 
@@ -323,7 +324,6 @@ pytest
 1. Mana yang benar untuk menentukan shift: label `shift` atau jam di `waktu_produksi`?
 2. Apakah ada perbedaan kondisi fisik atau *setting* pemanas di IM-03 dibandingkan mesin lain?
 3. Apakah sensor IM-04 memang pernah diatur ke satuan °F pada 10–23 April 2026?
-4. Berapa biaya satu komponen cacat yang lolos ke pelanggan dibandingkan satu komponen bagus yang dibuang?
 
 ## Alur kontribusi
 

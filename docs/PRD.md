@@ -241,6 +241,8 @@ Alur satu prediksi:
    peringatan, lalu mengirim jawaban.
 6. Streamlit menampilkan hasilnya.
 
+Kalau API tidak bisa dihubungi, langkah 3–5 dijalankan langsung di Streamlit (Mode A).
+
 ## 11. Kontrak antarmuka
 
 Kontrak ini disepakati **sebelum** A dan B mulai bekerja paralel. Selama kontrak dipatuhi, B bisa membangun API
@@ -422,21 +424,20 @@ fitur, aturan S5, dan README.
 | `app/`, `tests/`, `scripts/`, `.streamlit/` | Peninjau | Pemilik |
 | Deploy | Peninjau | Pemilik |
 | README | Hasil, *threshold*, keterbatasan | Cara menjalankan, tautan, struktur |
-| Laporan | Data, model, evaluasi | Aplikasi, cara pakai, keterbatasan sistem |
-| Video | Menjelaskan data, model, dan hasil | Menjelaskan arsitektur, API, aplikasi, dan demo |
+| Laporan | Masalah, data, metode, hasil | Aplikasi dan cara pakai |
+| Video | Menjelaskan masalah, data, model, dan hasil | Menjelaskan API, aplikasi, dan demo |
 
-Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
+Keterbatasan dan lampiran laporan ditulis bersama. Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
 
-"Pemilik" adalah satu-satunya orang yang mengubah file di area itu. "Peninjau" membaca dan memberi masukan
-sebelum perubahan dianggap selesai. Pembagian ini mencegah konflik, terutama pada file notebook yang sangat sulit di-*merge*.
+"Pemilik" adalah satu-satunya orang yang mengubah file di area itu. "Peninjau" membaca dan memberi masukan sebelum
+perubahan dianggap selesai. Pembagian ini mencegah konflik, terutama pada file notebook yang sangat sulit di-*merge*.
 
 ## 14. Alur pengerjaan Bagian A · Model
 
 ### A0 · Persiapan
 
-- *Pull* `main` terbaru, buat `.venv`, lalu `pip install -r requirements-dev.txt`.
+- *Pull* `main` terbaru, buat `.venv` dengan Python 3.12, lalu `pip install -r requirements-dev.txt`.
 - Jalankan notebook bagian 1–4 dari awal dan pastikan semua sel ✅ lolos.
-- Pastikan `.venv` memakai Python 3.12 dan `xgboost-cpu` sudah terpasang.
 - Ikut menyepakati kontrak [§11](#11-kontrak-antarmuka) bersama B.
 
 **Selesai jika:** notebook bagian 1–4 berjalan di laptop sendiri, dan kontrak sudah disepakati.
@@ -469,7 +470,6 @@ sebelum perubahan dianggap selesai. Pembagian ini mencegah konflik, terutama pad
 - Hitung PR-AUC *validation*, lalu gambar *precision-recall curve*.
 - Putuskan cara mengisi kelembaban yang kosong. Temuan bagian 4: median per bahan lebih tepat. Bandingkan dengan median
   global bila sempat.
-
 - Simpan *baseline* ke `artifacts/` (versi `0.1.0`) dengan *threshold* sementara dari *validation*. Data *test* belum
   dibuka.
 - *Push* (titik **MB**) supaya B bisa deploy lebih awal.
@@ -523,10 +523,9 @@ sebelum perubahan dianggap selesai. Pembagian ini mencegah konflik, terutama pad
 
 ### B0 · Persiapan
 
-- *Pull* `main` terbaru, buat `.venv`, lalu `pip install -r requirements-dev.txt`.
+- *Pull* `main` terbaru, buat `.venv` dengan Python 3.12, lalu `pip install -r requirements-dev.txt`.
 - Baca notebook bagian 4 dan [§12](#12-aturan-saran-tindakan), karena aturan saran berasal dari sana.
 - Sepakati kontrak [§11](#11-kontrak-antarmuka) bersama A (titik **M0**).
-- Pastikan `.venv` memakai Python 3.12.
 - Kode dari repo P3 boleh dipakai sebagai dasar supaya lebih cepat.
 
 **Selesai jika:** kontrak disepakati dan lingkungan siap.
@@ -622,7 +621,7 @@ pesan yang jelas.
 - Mode A (cadangan): kalau `API_URL` kosong atau API tidak bisa dihubungi, aplikasi memuat model sendiri. Tampilkan
   mode yang sedang dipakai.
 - Tampilkan probabilitas (angka besar dan *progress bar*), keputusan berwarna, daftar saran, dan peringatan.
-- Tangani semua kegagalan: API mati, *timeout*, 422 (tampilkan pesan per kolom), dan 503.
+- Tangani semua kegagalan: API mati atau *timeout* (pindah ke Mode A), 422 (tampilkan pesan per kolom), dan 503.
 - Bagian lipat "Tentang model" yang membaca `GET /metadata`.
 - Tambahkan `.streamlit/secrets.toml.example`.
 
@@ -690,7 +689,7 @@ flowchart LR
     M1 -.-> B5
     M2 --> B8[B8 deploy baseline]
     MB --> B8 --> M4a([M4a])
-    M4a --> B9[B9 model final dan deploy ulang]
+    M4a --> B9[B9 ganti ke model final]
     M3 --> B9 --> M4([M4])
     A6 --> A7[A7 dokumen]
     M4 --> M5([M5 laporan dan video])
@@ -748,8 +747,8 @@ flowchart LR
 
 - **Laporan** (maks. 6 halaman, PDF) mengikuti template dari dosen. A menulis bagian masalah, data, metode, dan
   hasil. B menulis bagian aplikasi. Keterbatasan dan lampiran ditulis bersama.
-- **Video** (maks. 5 menit) mengikuti pembagian waktu dari dosen. A menjelaskan data dan model, B menjelaskan
-  aplikasi dan demo.
+- **Video** (maks. 5 menit) mengikuti pembagian waktu dari dosen. A menjelaskan masalah, data, model, dan hasil.
+  B menjelaskan API, aplikasi, dan demo.
 
 ## 20. Risiko dan mitigasi
 
@@ -763,7 +762,7 @@ flowchart LR
 | Model final terlambat | Aplikasi belum online saat titik periksa 2 | Deploy pertama pakai *baseline*, model final menyusul |
 | API di hosting gratis mati | Aplikasi tidak bisa memprediksi | Aplikasi pindah ke Mode A |
 | Ditanya "baris ini untuk apa?" | Tidak bisa menjawab | Masing-masing memahami kode bagiannya sendiri |
-| Masukan aneh membuat aplikasi berhenti | Melanggar daftar periksa | Validasi di API dan di form, *handler* galat umum, dan tes T1–T12 |
+| Masukan aneh membuat aplikasi berhenti | Melanggar daftar periksa | Validasi di API dan di form, *handler* galat umum, dan tes T1–T13 |
 
 ## 21. Keputusan
 
@@ -774,12 +773,12 @@ flowchart LR
 | D3 | Proporsi *train*, *validation*, dan *test* | A | Selesai: 60/20/20 |
 | D4 | Apakah model final dilatih ulang dengan *train* + *validation*? | A | Selesai: tidak |
 | D5 | Nama proyek dan nama tim | Bersama | Belum diputuskan |
+| D6 | Mana yang benar, label `shift` atau jam di `waktu_produksi`? | Ditanyakan ke klien | Terbuka |
+| D7 | Apa penyebab fisik IM-03 lebih sering cacat? | Ditanyakan ke klien | Terbuka |
 | D8 | Versi Python | Bersama | Selesai: 3.12 |
 | D9 | Batas tekanan untuk fitur dan saran S5 (800 atau 850 bar) | A | Diuji di tahap A4 |
 | D10 | Mode aplikasi | B | Selesai: Mode B, dengan Mode A sebagai cadangan |
 | D11 | Kapan deploy pertama? | B | Selesai: sebelum titik periksa 2, pakai *baseline* |
-| D6 | Mana yang benar, label `shift` atau jam di `waktu_produksi`? | Ditanyakan ke klien | Terbuka |
-| D7 | Apa penyebab fisik IM-03 lebih sering cacat? | Ditanyakan ke klien | Terbuka |
 
 ## 22. Glosarium
 
@@ -795,3 +794,4 @@ flowchart LR
 | Kebocoran data | Informasi dari data *validation* atau *test* yang ikut terpakai saat pelatihan |
 | *Pipeline* | Rangkaian langkah praproses dan model yang dilatih dan disimpan sebagai satu objek |
 | *Cold start* | Jeda saat server gratis dibangunkan setelah lama tidak dipakai |
+| Mode A / Mode B | Mode A: Streamlit memuat model sendiri. Mode B: Streamlit memanggil API |
