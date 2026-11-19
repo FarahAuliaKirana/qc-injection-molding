@@ -7,6 +7,9 @@ __pycache__/
 # data turunan, dibuat ulang oleh notebook dari data/raw.csv
 data/bersih.csv
 
+# model sementara untuk pengembangan API (scripts/buat_model_dummy.py)
+artifacts_dummy/
+
 # rahasia Streamlit (contohnya ada di .streamlit/secrets.toml.example)
 .streamlit/secrets.toml
 
