@@ -142,8 +142,9 @@ Suhu standar dari tim proses: PP 230/40 °C, ABS 240/60 °C, PC 300/90 °C (suhu
 | *Baseline* wajib | Regresi logistik dengan fitur asli |
 | Kandidat model | Regresi logistik dengan fitur domain, XGBoost |
 | Masukan model | `mesin`, `bahan`, dan 7 parameter proses (`shift` dan `waktu_produksi` tidak dipakai) |
-| Pembagian data | *Train*, *validation*, dan *test* dengan stratifikasi, `random_state = 42` |
-| *Threshold* | Dipilih dari biaya komponen cacat yang lolos (FN) dan komponen bagus yang dibuang (FP) |
+| Pembagian data | *Train*, *validation*, dan *test* 60/20/20 dengan stratifikasi, `random_state = 42` |
+| *Threshold* | Biaya termurah di *validation*. Dari brief: komponen cacat yang lolos (FN) Rp500.000, komponen bagus yang disisihkan (FP) Rp25.000 |
+| Latih ulang | Model final tidak dilatih ulang dengan *train* + *validation* |
 | Data *test* | Dibuka sekali, setelah model dan *threshold* final ditetapkan |
 
 ## Hasil
@@ -207,7 +208,7 @@ menjelaskan kolom yang salah. Batas lengkap setiap kolom ada di [PRD §11](docs/
 
 | Lapisan | Teknologi | Versi |
 |---|---|---|
-| Bahasa | Python | 3.13 |
+| Bahasa | Python | 3.12 |
 | Olah data | pandas, NumPy | 3.1.0, 2.5.4 |
 | Model | scikit-learn, XGBoost (`xgboost-cpu`) | 1.9.1, 3.4.1 |
 | Penyimpanan model | joblib | 1.6.0 |

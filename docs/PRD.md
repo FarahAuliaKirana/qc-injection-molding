@@ -5,8 +5,8 @@
 | **Kasus** | 01 · Pengendalian Mutu *Injection Molding* |
 | **Repositori** | [FarahAuliaKirana/qc-injection-molding](https://github.com/FarahAuliaKirana/qc-injection-molding) |
 | **Tim** | Farah Aulia Kirana (Bagian A · Model) · Naufal Abhirama (Bagian B · Aplikasi) |
-| **Status dokumen** | Draf v1. Notebook bagian 1–4 selesai, bagian 5–10 dan aplikasi belum dimulai |
-| **Terakhir diperbarui** | 19 November 2026 |
+| **Status dokumen** | Draf v2. Notebook bagian 1–4 selesai, bagian 5–10 dan aplikasi belum dimulai |
+| **Terakhir diperbarui** | 20 November 2026 |
 
 Dokumen ini adalah acuan bersama tim: apa yang dibangun, untuk siapa, bagaimana bagian-bagiannya saling terhubung,
 dan urutan pengerjaannya. Jika ada keputusan yang berubah, perbarui dokumen ini lebih dulu, baru kodenya.
@@ -33,7 +33,7 @@ dan urutan pengerjaannya. Jika ada keputusan yang berubah, perbarui dokumen ini 
 18. [Pengujian dan kriteria penerimaan](#18-pengujian-dan-kriteria-penerimaan)
 19. [Laporan dan video](#19-laporan-dan-video)
 20. [Risiko dan mitigasi](#20-risiko-dan-mitigasi)
-21. [Keputusan yang belum diambil](#21-keputusan-yang-belum-diambil)
+21. [Keputusan](#21-keputusan)
 22. [Glosarium](#22-glosarium)
 
 ---
@@ -50,7 +50,8 @@ Sistem terdiri dari tiga lapis:
 1. **Notebook** untuk EDA, pembersihan data, pembuatan fitur, pelatihan, dan evaluasi model. Hasilnya
    `src/features.py`, `artifacts/model.joblib`, dan `artifacts/metadata.json`.
 2. **API (FastAPI)** yang memuat model, memvalidasi masukan, dan menghitung prediksi serta saran.
-3. **Aplikasi web (Streamlit)** untuk operator. Aplikasi ini memanggil API dan bisa dibuka dari ponsel.
+3. **Aplikasi web (Streamlit)** untuk operator. Aplikasi ini memanggil API dan bisa dibuka dari ponsel. Kalau API sedang
+   tidak bisa dihubungi, aplikasi memakai model secara langsung.
 
 ## 2. Latar belakang dan masalah
 
@@ -68,7 +69,7 @@ Sistem terdiri dari tiga lapis:
 | Kode | Tujuan | Ukuran keberhasilan |
 |---|---|---|
 | G1 | Model mampu membedakan siklus berisiko cacat dari siklus normal | PR-AUC *test* jauh di atas proporsi cacat (sekitar 0,08), dan lebih tinggi dari *baseline* regresi logistik |
-| G2 | Keputusan "pisahkan atau lolos" mempertimbangkan biaya nyata | *Threshold* dipilih dari biaya FN dan FP di brief, dengan alasan tertulis |
+| G2 | Keputusan "pisahkan atau lolos" mempertimbangkan biaya nyata | *Threshold* dipilih dari biaya di brief (FN Rp500.000, FP Rp25.000), dengan alasan tertulis |
 | G3 | Operator bisa memakai sistem langsung di lantai produksi | Aplikasi bisa dibuka lewat tautan, termasuk dari ponsel, dan memberi jawaban dalam hitungan detik |
 | G4 | Sistem tahan terhadap masukan yang tidak wajar | Tidak ada masukan yang membuat API atau aplikasi berhenti mendadak |
 | G5 | Hasil bisa diulang dan diperiksa | Notebook bisa dijalankan ulang dari awal tanpa galat, dan versi library dikunci |
@@ -132,13 +133,15 @@ Sistem terdiri dari tiga lapis:
 | FR-13 | Aplikasi Streamlit menampilkan form masukan, probabilitas, keputusan, saran, dan peringatan | B |
 | FR-14 | Aplikasi mengisi nilai awal suhu sesuai standar bahan yang dipilih | B |
 | FR-15 | Aplikasi menampilkan pesan yang ramah jika API lambat, mati, atau menolak masukan | B |
+| FR-16 | Setiap prediksi dicatat ke log (masukan, hasil, dan waktunya) | B |
+| FR-17 | Kalau API tidak bisa dihubungi, aplikasi tetap bisa memprediksi dengan memuat model sendiri | B |
 
 ## 7. Kebutuhan non-fungsional
 
 | Kode | Kebutuhan |
 |---|---|
 | NFR-01 | **Ketahanan.** Tidak ada masukan yang menghasilkan galat 500 atau membuat aplikasi berhenti. Semua kesalahan masukan dijawab dengan kode 422 dan pesan berbahasa Indonesia. |
-| NFR-02 | **Konsistensi.** Versi library di lingkungan pelatihan, API, dan deploy sama dengan `requirements.txt`, dan dicatat di `metadata.json`. |
+| NFR-02 | **Konsistensi.** Semua memakai Python 3.12. Versi library di lingkungan pelatihan, API, dan deploy sama dengan `requirements.txt`, dan versi Python serta library dicatat di `metadata.json`. |
 | NFR-03 | **Tanpa kebocoran data.** Duplikat dihapus sebelum *split*. Imputasi dan *scaling* dipelajari hanya dari data *train* di dalam *pipeline*. |
 | NFR-04 | **Reproduksibilitas.** `RANDOM_STATE = 42`. Notebook bisa dijalankan ulang dari awal sampai akhir dengan kernel `.venv`. |
 | NFR-05 | **Kecepatan.** Satu prediksi selesai dalam waktu kurang dari 1 detik di sisi API (di luar *cold start* hosting gratis). |
@@ -192,11 +195,14 @@ Sistem terdiri dari tiga lapis:
 | Jenis tugas | Klasifikasi biner dengan probabilitas |
 | Metrik utama | **PR-AUC** (*average precision*), karena data tidak seimbang. Akurasi tidak dipakai |
 | Metrik pendukung | *Recall* dan *precision* pada *threshold* terpilih, *confusion matrix*, total biaya |
-| Pembagian data | *Train*, *validation*, dan *test* dengan stratifikasi pada `cacat`, `random_state = 42`. Proporsi diputuskan di tahap A2 |
+| Pembagian data | 60/20/20 untuk *train*, *validation*, dan *test*, dengan stratifikasi pada `cacat` dan `random_state = 42`. Dengan proporsi ini, *validation* dan *test* masing-masing berisi sekitar 388 komponen cacat |
 | *Baseline* wajib | Regresi logistik dengan fitur asli dalam satu `Pipeline` (imputasi median, *scaling*, *one-hot*) |
 | Kandidat model | Regresi logistik dengan fitur dari `src/features.py`, XGBoost, dan model lain bila perlu |
-| Pemilihan model | PR-AUC *validation* tertinggi, dengan mempertimbangkan kesederhanaan |
-| *Threshold* | Dipilih di data *validation* dengan meminimalkan total biaya (biaya FN × FN + biaya FP × FP) |
+| Pemilihan model | PR-AUC *validation* tertinggi. Kalau hasilnya hampir sama (selisih di bawah 0,01), pilih regresi logistik karena lebih mudah dijelaskan |
+| Biaya | Dari brief: komponen cacat yang lolos ke pelanggan (FN) Rp500.000, komponen bagus yang ikut disisihkan (FP) Rp25.000 |
+| *Threshold* | Dicari di data *validation*, lalu dipilih yang total biayanya paling kecil (FN × Rp500.000 + FP × Rp25.000) |
+| Pembanding biaya | Kalau semua komponen diloloskan (kondisi sekarang) dan kalau semua komponen disisihkan |
+| Latih ulang | Tidak. Model yang disimpan sama dengan model yang diuji di *test* |
 | Data *test* | Hanya dibuka **sekali**, setelah model dan *threshold* final ditetapkan |
 | Masukan model | 9 kolom: `mesin`, `bahan`, dan 7 parameter proses. `shift` dan `waktu_produksi` tidak dipakai |
 
@@ -338,7 +344,11 @@ def buat_fitur(df: pd.DataFrame) -> pd.DataFrame:
 - Tidak mengubah DataFrame masukan (mengembalikan salinan).
 - Tetap berjalan jika ada NaN di kolom opsional.
 - Fitur yang direncanakan: `selisih_leleh`, `selisih_cetakan`, `abs_selisih_leleh`, `abs_selisih_cetakan`,
-  `kelembaban_higroskopis`, `kekurangan_tekanan`. Daftar final ditentukan A di tahap A1.
+  `kelembaban_higroskopis`, `kekurangan_tekanan`. Fitur yang akhirnya dipakai diputuskan dari hasil PR-AUC
+  *validation* di tahap A4.
+- Yang tidak boleh berubah hanya nama fungsi dan dua konstanta di atas. Isi fiturnya boleh berubah tanpa perlu
+  mengubah kode API.
+- Boleh berisi fungsi tambahan yang dipakai di dalam *pipeline*, misalnya pengisian kelembaban per bahan.
 - Dibuat oleh notebook (bagian 5), sehingga isi file dan notebook selalu sama.
 - Konstanta `SUHU_STANDAR` dan `BAHAN_HIGROSKOPIS` juga dipakai B untuk aturan saran, jadi hanya ada satu sumber.
 
@@ -365,7 +375,7 @@ def buat_fitur(df: pd.DataFrame) -> pd.DataFrame:
   "rentang_data_latih": {"suhu_leleh_C": [0, 0]},
   "threshold": 0.0,
   "alasan_threshold": "",
-  "biaya": {"fn": 0, "fp": 0},
+  "biaya": {"fn": 500000, "fp": 25000},
   "metrik": {
     "baseline_pr_auc_validation": 0.0,
     "pr_auc_validation": 0.0,
@@ -373,11 +383,13 @@ def buat_fitur(df: pd.DataFrame) -> pd.DataFrame:
     "recall_test": 0.0,
     "precision_test": 0.0
   },
-  "versi_library": {"scikit-learn": "1.9.1", "xgboost": "3.4.1", "pandas": "3.1.0", "numpy": "2.5.4"}
+  "versi_library": {"python": "3.12.x", "scikit-learn": "1.9.1", "xgboost": "3.4.1", "pandas": "3.1.0",
+                    "numpy": "2.5.4"}
 }
 ```
 
-Semua angka di atas adalah *placeholder* yang diisi oleh notebook bagian 10.
+Angka biaya diambil dari brief, sisanya diisi oleh notebook bagian 10. Versi Python dan library diambil langsung dari
+lingkungan, bukan diketik manual.
 
 ## 12. Aturan saran tindakan
 
@@ -390,12 +402,15 @@ disimpan sebagai konstanta di `app/api/saran.py` supaya mudah disesuaikan.
 | S2 | \|suhu cetakan − standar bahan\| > 10 °C | Sesuaikan suhu cetakan ke ±5 °C dari standar | Pola U, §4.2 |
 | S3 | Bahan ABS atau PC dan kelembaban > 0,15% | **Prioritas:** keringkan bahan sampai di bawah 0,10% | Lonjakan cacat, §4.3 |
 | S4 | Bahan ABS atau PC dan kelembaban 0,10–0,15% | Pertimbangkan pengeringan tambahan | Mulai naik, §4.3 |
-| S5 | Tekanan < 800 bar | Naikkan tekanan injeksi ke sekitar 850 bar atau lebih | Lutut tekanan, §4.4 |
+| S5 | Tekanan < 800 bar (sementara) | Naikkan tekanan injeksi ke sekitar 850 bar atau lebih | Lutut tekanan, §4.4 |
 | S6 | Waktu pendinginan < 13 detik | Perpanjang waktu pendinginan ke 13 detik atau lebih | §4.4 |
 | S7 | Mesin IM-03 | Laporkan ke perawatan: IM-03 cenderung 6 °C lebih panas dan lebih sering cacat | §4.5 |
 | S8 | Keputusan `PISAHKAN` tetapi tidak ada aturan S1–S6 yang terpicu | Pisahkan dan periksa manual. Parameter tampak normal, kemungkinan ada faktor lain | — |
 
 Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
+
+Batas tekanan S5 belum final. Di tahap A4, A membandingkan 800 dan 850 bar, lalu angka yang terpilih dipakai sama di
+fitur, aturan S5, dan README.
 
 ## 13. Pembagian peran
 
@@ -408,7 +423,9 @@ Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 | Deploy | Peninjau | Pemilik |
 | README | Hasil, *threshold*, keterbatasan | Cara menjalankan, tautan, struktur |
 | Laporan | Data, model, evaluasi | Aplikasi, cara pakai, keterbatasan sistem |
-| Video | Menjelaskan aplikasi (tukar peran) | Menjelaskan model (tukar peran) |
+| Video | Menjelaskan data, model, dan hasil | Menjelaskan arsitektur, API, aplikasi, dan demo |
+
+Di video, masing-masing menjelaskan bagian yang dikerjakan sendiri.
 
 "Pemilik" adalah satu-satunya orang yang mengubah file di area itu. "Peninjau" membaca dan memberi komentar di
 *pull request*. Pembagian ini mencegah konflik, terutama pada file notebook yang sangat sulit di-*merge*.
@@ -419,10 +436,10 @@ Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 
 - *Pull* `main` terbaru, buat `.venv`, lalu `pip install -r requirements-dev.txt`.
 - Jalankan notebook bagian 1–4 dari awal dan pastikan semua sel ✅ lolos.
+- Pastikan `.venv` memakai Python 3.12 dan `xgboost-cpu` sudah terpasang.
 - Ikut menyepakati kontrak [§11](#11-kontrak-antarmuka) bersama B.
-- Cari angka biaya FN dan FP di brief.
 
-**Selesai jika:** notebook bagian 1–4 berjalan di laptop sendiri, dan kontrak serta biaya sudah disepakati.
+**Selesai jika:** notebook bagian 1–4 berjalan di laptop sendiri, dan kontrak sudah disepakati.
 
 ### A1 · Bagian 5: fitur dari pengetahuan proses
 
@@ -437,7 +454,8 @@ Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 ### A2 · Bagian 6: membagi data
 
 - Pisahkan `X` (9 kolom masukan) dan `y` (`cacat`).
-- Bagi menjadi *train*, *validation*, dan *test* dengan stratifikasi dan `random_state = 42`.
+- Bagi menjadi *train*, *validation*, dan *test* 60/20/20 dengan stratifikasi dan `random_state = 42` (potong 60/40
+  dulu, lalu sisanya dibagi dua).
 - Tampilkan jumlah baris dan proporsi cacat di setiap bagian.
 - Simpan *test* di variabel terpisah dan jangan disentuh sampai A5.
 
@@ -452,12 +470,18 @@ Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 - Putuskan cara mengisi kelembaban yang kosong. Temuan bagian 4: median per bahan lebih tepat. Bandingkan dengan median
   global bila sempat.
 
-**Selesai jika:** PR-AUC *validation baseline* tercatat dan menjadi pembanding semua model berikutnya.
+- Simpan *baseline* ke `artifacts/` (versi `0.1.0`) dengan *threshold* sementara dari *validation*. Data *test* belum
+  dibuka.
+- *Push* lewat *pull request* (titik **MB**) supaya B bisa deploy lebih awal.
+
+**Selesai jika:** PR-AUC *validation baseline* tercatat dan artefak *baseline* sudah ada di `main`.
 
 ### A4 · Bagian 8: model lain
 
 - Regresi logistik dengan fitur dari `buat_fitur` (`FunctionTransformer` di awal *pipeline*), untuk membuktikan bahwa
   fitur domain membantu.
+- Coba tambah atau buang fitur satu per satu, lalu lihat PR-AUC *validation*-nya. Termasuk batas tekanan 800 atau
+  850, dan pengisian kelembaban per bahan atau secara umum. Kabari B batas tekanan yang dipakai.
 - XGBoost (`scale_pos_weight` untuk data tidak seimbang), dengan penyetelan *hyperparameter* sederhana yang dinilai di
   *validation* atau dengan *cross-validation* pada *train*.
 - Tabel perbandingan PR-AUC *validation* semua model.
@@ -467,17 +491,19 @@ Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 
 ### A5 · Bagian 9: *threshold* berbasis biaya, lalu membuka data *test*
 
-- Untuk setiap *threshold* 0,01–0,99, hitung FN dan FP di *validation*, lalu total biayanya.
+- Untuk setiap *threshold* 0,01–0,99, hitung FN dan FP di *validation*, lalu total biayanya
+  (FN × Rp500.000 + FP × Rp25.000).
 - Pilih *threshold* dengan biaya terendah, gambar kurva biaya terhadap *threshold*, lalu tuliskan alasan bisnisnya.
 - Setelah semuanya final, buka *test* **sekali**: PR-AUC *test*, *recall*, *precision*, *confusion matrix*, dan total
-  biaya. Bandingkan dengan biaya inspeksi saat ini (semua lolos sampai akhir shift).
+  biaya. Bandingkan dengan kalau semua komponen diloloskan (kondisi sekarang) dan kalau semua disisihkan.
+- *Recall* tinggi dan *precision* rendah itu wajar karena biaya FN 20 kali biaya FP. Jelaskan ini di laporan.
 - Opsional: uji temporal (latih Maret–Mei, uji Juni) sebagai pemeriksaan tambahan.
 
 **Selesai jika:** *threshold* dan metrik *test* tercatat, dan *test* hanya dievaluasi satu kali.
 
 ### A6 · Bagian 10: menyimpan dan menguji model dari file
 
-- Putuskan apakah model final dilatih ulang dengan *train* + *validation* sebelum disimpan, lalu tuliskan keputusannya.
+- Model final tidak dilatih ulang dengan *train* + *validation*.
 - Simpan `artifacts/model.joblib` dan `artifacts/metadata.json` sesuai [§11.6–11.7](#116-artifactsmodeljoblib),
   termasuk `rentang_data_latih` dari data *train*.
 - Muat ulang dari file, lalu cek: prediksi sama dengan model di memori, satu baris dengan NaN bisa diprediksi, dan
@@ -490,7 +516,7 @@ Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 ### A7 · Dokumen
 
 - Isi README: tabel hasil, *threshold* dan alasannya, keterbatasan model.
-- Tulis bagian laporan tentang data, model, dan evaluasi.
+- Tulis bagian laporan tentang data, model, dan evaluasi, termasuk fitur yang paling berpengaruh.
 - Tinjau *pull request* B, khususnya aturan saran tindakan dan kontrak masukan.
 
 ## 15. Alur pengerjaan Bagian B · Aplikasi
@@ -500,6 +526,8 @@ Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 - *Pull* `main` terbaru, buat `.venv`, lalu `pip install -r requirements-dev.txt`.
 - Baca notebook bagian 4 dan [§12](#12-aturan-saran-tindakan), karena aturan saran berasal dari sana.
 - Sepakati kontrak [§11](#11-kontrak-antarmuka) bersama A (titik **M0**).
+- Pastikan `.venv` memakai Python 3.12.
+- Kode dari repo P3 boleh dipakai sebagai dasar supaya lebih cepat.
 - Buat *branch* `b/api`.
 
 **Selesai jika:** kontrak disepakati dan lingkungan siap.
@@ -559,6 +587,8 @@ pesan yang jelas.
   nilai di luar `rentang_data_latih`).
 - `GET /metadata`: kembalikan versi model, *threshold*, metrik, dan daftar fitur.
 - Tambahkan *handler* galat umum supaya kesalahan tak terduga menjadi 500 tanpa *stack trace*.
+- Catat setiap prediksi ke log (masukan, hasil, dan waktunya).
+- Taruh logika prediksi dan saran di satu modul, supaya Streamlit juga bisa memakainya saat Mode A.
 
 **Selesai jika:** contoh permintaan [§11.1](#111-skema-masukan) menghasilkan jawaban berformat [§11.2](#112-keluaran-post-predict).
 
@@ -588,8 +618,10 @@ pesan yang jelas.
   "belum diukur".
 - Saat `bahan` diganti, nilai awal suhu leleh dan suhu cetakan mengikuti standar bahan itu.
 - `number_input` diberi batas yang sama dengan batas keras API.
-- Kirim ke `st.secrets["API_URL"]` (cadangan: `http://127.0.0.1:8000`) dengan *timeout* yang cukup untuk *cold
-  start*, dan tampilkan *spinner* selama menunggu.
+- Mode B (utama): kirim ke `st.secrets["API_URL"]` dengan *timeout* yang cukup untuk *cold start*, dan tampilkan
+  *spinner* selama menunggu.
+- Mode A (cadangan): kalau `API_URL` kosong atau API tidak bisa dihubungi, aplikasi memuat model sendiri. Tampilkan
+  mode yang sedang dipakai.
 - Tampilkan probabilitas (angka besar dan *progress bar*), keputusan berwarna, daftar saran, dan peringatan.
 - Tangani semua kegagalan: API mati, *timeout*, 422 (tampilkan pesan per kolom), dan 503.
 - Bagian lipat "Tentang model" yang membaca `GET /metadata`.
@@ -598,27 +630,31 @@ pesan yang jelas.
 **Selesai jika:** aplikasi berjalan lokal dengan API lokal, nyaman di lebar layar ponsel (cek dengan mode *responsive*
 di peramban), dan tidak pernah menampilkan *traceback* (titik **M2** selesai).
 
-### B8 · Integrasi model final
+### B8 · Deploy dengan model *baseline*
 
-- Setelah **M3**, *pull* `main`, lalu jalankan API dengan `MODEL_DIR=artifacts` (nilai bawaan).
-- Pastikan `/health` menampilkan versi model final, `pytest` lolos, dan beberapa contoh nyata dari `data/bersih.csv`
-  memberi probabilitas yang masuk akal (baris cacat cenderung lebih tinggi).
-- Ganti salinan konstanta di `saran.py` dengan *import* dari `src.features`.
+Dikerjakan setelah **M2** dan **MB**, sebelum titik periksa 2 (aplikasi sudah harus online, boleh masih pakai
+*baseline*).
 
-**Selesai jika:** API dan aplikasi lokal berjalan dengan model final tanpa mengubah kode selain konfigurasi.
-
-### B9 · Deploy
-
-- **API:** buat layanan web di hosting yang disepakati ([§21](#21-keputusan-yang-belum-diambil)), dengan *build*
-  `pip install -r requirements.txt` dan *start* `uvicorn app.api.main:app --host 0.0.0.0 --port $PORT`. Samakan versi
-  Python dengan lingkungan lokal.
-- **Aplikasi:** Streamlit Community Cloud, *main file* `app/ui/streamlit_app.py`, isi *secrets* `API_URL` dengan URL
-  API.
-- Uji dari ponsel dengan data seluler (bukan wifi kampus) memakai semua kasus uji penerimaan.
+- *Pull* `main`, lalu jalankan API dan aplikasi lokal dengan artefak *baseline*.
+- **API:** deploy ke hosting yang disepakati ([§21](#21-keputusan)) dengan *build* `pip install -r requirements.txt`
+  dan *start* `uvicorn app.api.main:app --host 0.0.0.0 --port $PORT`. Pakai Python 3.12.
+- **Aplikasi:** Streamlit Community Cloud, *main file* `app/ui/streamlit_app.py`, Python 3.12, isi *secrets*
+  `API_URL` dengan URL API.
+- Coba dari ponsel pakai data seluler (bukan wifi kampus), termasuk satu masukan yang tidak wajar.
 - Isi tautan di README.
 
-**Selesai jika:** orang lain bisa membuka aplikasi dari tautan dan semua kriteria [§18](#18-pengujian-dan-kriteria-penerimaan)
-terpenuhi (titik **M4**).
+**Selesai jika:** orang lain bisa membuka aplikasi dari tautan (titik **M4a**).
+
+### B9 · Ganti ke model final
+
+- Setelah **M3**, *pull* `main`. Artefak final menggantikan artefak *baseline* di `artifacts/`.
+- Pastikan `/health` menampilkan versi model final, `pytest` lolos, dan beberapa contoh dari `data/bersih.csv`
+  memberi probabilitas yang masuk akal (baris cacat cenderung lebih tinggi).
+- Ganti salinan konstanta di `saran.py` dengan *import* dari `src.features`, dan pakai batas tekanan S5 dari A.
+- Deploy ulang, lalu coba lagi dari ponsel.
+
+**Selesai jika:** aplikasi online memakai model final dan semua kriteria
+[§18](#18-pengujian-dan-kriteria-penerimaan) terpenuhi (titik **M4**).
 
 ### B10 · Dokumen
 
@@ -631,20 +667,32 @@ terpenuhi (titik **M4**).
 
 | Titik | Isi | Siapa menunggu siapa |
 |---|---|---|
-| **M0** | Kontrak [§11](#11-kontrak-antarmuka) dan biaya FN/FP disepakati | Bersama, sebelum kerja paralel |
+| **M0** | Kontrak [§11](#11-kontrak-antarmuka), split, dan versi Python disepakati | Bersama, sebelum kerja paralel |
 | **M1** | `src/features.py` ada di `main` | B memakainya di B5 dan B6. B tidak terhambat karena memakai salinan sementara |
+| **MB** | Artefak *baseline* ada di `main` | B memakainya untuk deploy pertama |
 | **M2** | API dan aplikasi berjalan lokal dengan model *dummy*, `pytest` lolos | Tidak ada yang menunggu |
-| **M3** | `artifacts/model.joblib` dan `metadata.json` final ada di `main` | B mulai B8. Sebelum itu B mengerjakan B1–B7 |
-| **M4** | API dan aplikasi ter-deploy dan lolos uji penerimaan | A memakai tautan untuk laporan |
+| **M4a** | Aplikasi online dengan model *baseline* | — |
+| **M3** | `artifacts/model.joblib` dan `metadata.json` final ada di `main` | B mulai B9 |
+| **M4** | Aplikasi online dengan model final dan lolos uji penerimaan | A memakai tautan untuk laporan |
 | **M5** | README lengkap, laporan, video, dan daftar periksa selesai | Bersama |
+
+Jadwal dari dosen:
+
+| Waktu | Yang harus ada | Titik |
+|---|---|---|
+| Akhir minggu P4 | Repositori publik berisi EDA, data bersih, dan *baseline* | MB |
+| Pertengahan minggu P5 | Aplikasi sudah online (boleh masih pakai *baseline*) | M4a |
+| Akhir minggu P5 | Model final, laporan, dan video | M3, M4, M5 |
 
 ```mermaid
 flowchart LR
-    M0([M0 kontrak]) --> A1[A1 fitur] --> M1([M1]) --> A2[A2 split] --> A3[A3 baseline] --> A4[A4 model lain] --> A5[A5 threshold dan test] --> A6[A6 simpan] --> M3([M3])
+    M0([M0 kontrak]) --> A1[A1 fitur] --> M1([M1]) --> A2[A2 split] --> A3[A3 baseline] --> MB([MB]) --> A4[A4 model lain] --> A5[A5 threshold dan test] --> A6[A6 simpan] --> M3([M3])
     M0 --> B1[B1 kerangka] --> B2[B2 dummy] --> B3[B3 validasi] --> B4[B4 predict] --> B5[B5 saran] --> B6[B6 tes] --> B7[B7 Streamlit] --> M2([M2])
     M1 -.-> B5
-    M2 --> B8[B8 integrasi]
-    M3 --> B8 --> B9[B9 deploy] --> M4([M4])
+    M2 --> B8[B8 deploy baseline]
+    MB --> B8 --> M4a([M4a])
+    M4a --> B9[B9 model final dan deploy ulang]
+    M3 --> B9 --> M4([M4])
     A6 --> A7[A7 dokumen]
     M4 --> M5([M5 laporan dan video])
     A7 --> M5
@@ -683,6 +731,7 @@ flowchart LR
 | T10 | Nilai di dalam batas keras tetapi di luar rentang data latih | 200, dengan peringatan |
 | T11 | Model tidak ada di `MODEL_DIR` | `/health` dan `/predict` menjawab 503, API tetap hidup |
 | T12 | Kelembaban ABS 0,20 | `saran` berisi S3 |
+| T13 | Satu prediksi valid | Log API mencatat masukan, keluaran, dan waktu |
 
 ### Kriteria penerimaan akhir
 
@@ -692,29 +741,17 @@ flowchart LR
 - [ ] `metadata.json` berisi versi model, fitur masukan, *threshold*, metrik, dan versi library.
 - [ ] `pytest` lolos semua.
 - [ ] Aplikasi bisa dibuka orang lain melalui tautan, termasuk dari ponsel.
-- [ ] Kasus T1–T12 diuji ulang di versi yang sudah ter-deploy.
+- [ ] Kasus T1–T13 diuji ulang di versi yang sudah ter-deploy.
+- [ ] Aplikasi tetap memberi prediksi lewat Mode A ketika API tidak bisa dihubungi.
 - [ ] Repositori publik dan setiap anggota memiliki *commit*.
 - [ ] Laporan paling banyak 6 halaman dan video paling lama 5 menit.
 
 ## 19. Laporan dan video
 
-### Kerangka laporan (maks. 6 halaman)
-
-1. Masalah dan pengguna
-2. Data dan pembersihan (tabel masalah data)
-3. Temuan EDA (pola U suhu, ambang kelembaban, IM-03) beserta saran untuk klien
-4. Fitur dan model (*baseline* dibandingkan dengan model final)
-5. *Threshold* berbasis biaya dan hasil *test*
-6. Aplikasi (arsitektur, tangkapan layar, cara pakai)
-7. Keterbatasan dan pertanyaan untuk klien
-
-### Alur video (maks. 5 menit)
-
-1. Masalah klien dan siapa penggunanya
-2. Temuan data yang paling menarik (°F di IM-04, pola U, kelembaban, IM-03)
-3. Model: *baseline* dibandingkan dengan model final, dan alasan *threshold*
-4. Demo aplikasi dari ponsel: satu siklus normal, satu siklus berisiko, dan satu masukan salah
-5. Keterbatasan dan langkah berikutnya
+- **Laporan** (maks. 6 halaman, PDF) mengikuti template dari dosen. A menulis bagian masalah, data, metode, dan
+  hasil. B menulis bagian aplikasi. Keterbatasan dan lampiran ditulis bersama.
+- **Video** (maks. 5 menit) mengikuti pembagian waktu dari dosen. A menjelaskan data dan model, B menjelaskan
+  aplikasi dan demo.
 
 ## 20. Risiko dan mitigasi
 
@@ -725,19 +762,24 @@ flowchart LR
 | Konflik *merge* di notebook | Pekerjaan hilang | Hanya A yang mengubah notebook |
 | Hosting gratis tidur saat tidak dipakai (*cold start*) | Permintaan pertama lambat atau *timeout* | *Timeout* longgar dan *spinner* di Streamlit. Buka aplikasi sebelum demo |
 | Data *test* terbuka lebih dari sekali | Nilai *test* tidak jujur | Variabel *test* hanya dipakai di bagian 9 |
-| Biaya FN/FP tidak ada di brief | *Threshold* tidak bisa dibenarkan | Tanyakan ke dosen. Jika tetap tidak ada, pakai asumsi tertulis dan uji kepekaannya |
-| Model final terlambat | B tidak bisa deploy | B memakai model *dummy* dengan kontrak yang sama, sehingga deploy bisa diuji lebih awal |
+| Model final terlambat | Aplikasi belum online saat titik periksa 2 | Deploy pertama pakai *baseline*, model final menyusul |
+| API di hosting gratis mati | Aplikasi tidak bisa memprediksi | Aplikasi pindah ke Mode A |
+| Ditanya "baris ini untuk apa?" | Tidak bisa menjawab | Masing-masing memahami kode bagiannya sendiri |
 | Masukan aneh membuat aplikasi berhenti | Melanggar daftar periksa | Validasi di API dan di form, *handler* galat umum, dan tes T1–T12 |
 
-## 21. Keputusan yang belum diambil
+## 21. Keputusan
 
 | No | Pertanyaan | Pemilik | Status |
 |---|---|---|---|
-| D1 | Berapa biaya FN (komponen cacat lolos) dan FP (komponen bagus dibuang)? | A | Dicari di brief |
+| D1 | Berapa biaya FN (komponen cacat lolos) dan FP (komponen bagus dibuang)? | A | Selesai: Rp500.000 dan Rp25.000 (dari brief) |
 | D2 | Hosting API: Render, Hugging Face Spaces, atau lainnya? | B | Belum diputuskan |
-| D3 | Proporsi *train*, *validation*, dan *test* | A | Belum diputuskan |
-| D4 | Apakah model final dilatih ulang dengan *train* + *validation*? | A | Belum diputuskan |
+| D3 | Proporsi *train*, *validation*, dan *test* | A | Selesai: 60/20/20 |
+| D4 | Apakah model final dilatih ulang dengan *train* + *validation*? | A | Selesai: tidak |
 | D5 | Nama proyek dan nama tim | Bersama | Belum diputuskan |
+| D8 | Versi Python | Bersama | Selesai: 3.12 |
+| D9 | Batas tekanan untuk fitur dan saran S5 (800 atau 850 bar) | A | Diuji di tahap A4 |
+| D10 | Mode aplikasi | B | Selesai: Mode B, dengan Mode A sebagai cadangan |
+| D11 | Kapan deploy pertama? | B | Selesai: sebelum titik periksa 2, pakai *baseline* |
 | D6 | Mana yang benar, label `shift` atau jam di `waktu_produksi`? | Ditanyakan ke klien | Terbuka |
 | D7 | Apa penyebab fisik IM-03 lebih sering cacat? | Ditanyakan ke klien | Terbuka |
 
