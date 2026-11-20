@@ -149,6 +149,6 @@ docs/PRD.md     dokumen kebutuhan dan pembagian kerja tim
 - [x] *Baseline* wajib dilaporkan dan dibandingkan
 - [x] Data *test* hanya dibuka satu kali, di akhir
 - [x] `artifacts/metadata.json` berisi versi model, fitur masukan, *threshold*, dan metrik
-- [ ] Aplikasi dapat dibuka orang lain melalui tautan, termasuk dari ponsel
+- [x] Aplikasi dapat dibuka orang lain melalui tautan, termasuk dari ponsel
 - [x] Aplikasi tidak berhenti mendadak ketika menerima masukan yang tidak wajar
 - [ ] Laporan paling banyak 6 halaman dan video paling lama 5 menit

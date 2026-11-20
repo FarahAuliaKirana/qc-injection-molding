@@ -748,7 +748,7 @@ flowchart LR
 - [x] Data *test* hanya dievaluasi sekali.
 - [x] `metadata.json` berisi versi model, fitur masukan, *threshold*, metrik, dan versi library.
 - [x] `pytest` lolos semua.
-- [ ] Aplikasi bisa dibuka orang lain melalui tautan, termasuk dari ponsel.
+- [x] Aplikasi bisa dibuka orang lain melalui tautan, termasuk dari ponsel.
 - [ ] Kasus T1–T13 diuji ulang di versi yang sudah ter-deploy.
 - [x] Aplikasi tetap memberi prediksi lewat Mode A ketika API tidak bisa dihubungi.
 - [x] Repositori publik dan setiap anggota memiliki *commit*.
