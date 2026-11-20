@@ -1,0 +1,85 @@
+{
+  "versi_model": "0.1.0",
+  "tanggal_latih": "2026-11-20",
+  "nama_model": "Baseline: regresi logistik dengan fitur asli",
+  "fitur_masukan": [
+    "mesin",
+    "bahan",
+    "suhu_leleh_C",
+    "suhu_cetakan_C",
+    "tekanan_injeksi_bar",
+    "kecepatan_injeksi_mm_s",
+    "waktu_pendinginan_s",
+    "waktu_siklus_s",
+    "kelembaban_bahan_pct"
+  ],
+  "kolom_opsional": [
+    "tekanan_injeksi_bar",
+    "waktu_pendinginan_s",
+    "waktu_siklus_s",
+    "kelembaban_bahan_pct"
+  ],
+  "kategori": {
+    "mesin": [
+      "IM-01",
+      "IM-02",
+      "IM-03",
+      "IM-04"
+    ],
+    "bahan": [
+      "PP",
+      "ABS",
+      "PC"
+    ]
+  },
+  "rentang_data_latih": {
+    "suhu_leleh_C": [
+      195.5,
+      336.9
+    ],
+    "suhu_cetakan_C": [
+      8.0,
+      112.7
+    ],
+    "tekanan_injeksi_bar": [
+      431.0,
+      1310.0
+    ],
+    "kecepatan_injeksi_mm_s": [
+      26.1,
+      136.6
+    ],
+    "waktu_pendinginan_s": [
+      6.0,
+      34.3
+    ],
+    "waktu_siklus_s": [
+      16.2,
+      49.6
+    ],
+    "kelembaban_bahan_pct": [
+      0.0,
+      0.514
+    ]
+  },
+  "threshold": 0.05,
+  "alasan_threshold": "Total biaya termurah di data validation (FN Rp500.000, FP Rp25.000). Sementara untuk baseline.",
+  "biaya": {
+    "fn": 500000,
+    "fp": 25000
+  },
+  "metrik": {
+    "baseline_pr_auc_validation": 0.474,
+    "pr_auc_validation": 0.474,
+    "pr_auc_test": null,
+    "recall_test": null,
+    "precision_test": null
+  },
+  "versi_library": {
+    "python": "3.12.10",
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.4.1",
+    "pandas": "3.1.0",
+    "numpy": "2.5.4"
+  }
+}

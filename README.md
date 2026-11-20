@@ -53,8 +53,8 @@ Rincian tanggung jawab dan alur pengerjaan setiap bagian ada di [PRD §13–15](
 | Notebook 3 · Membersihkan data | ✅ Selesai |
 | Notebook 4 · EDA terhadap target | ✅ Selesai |
 | Notebook 5 · Fitur (`src/features.py`) | ✅ Selesai |
-| Notebook 6 · Pembagian data | ⬜ Belum |
-| Notebook 7 · *Baseline* regresi logistik | ⬜ Belum |
+| Notebook 6 · Pembagian data | ✅ Selesai |
+| Notebook 7 · *Baseline* regresi logistik | ✅ Selesai (artefak *baseline* v0.1.0 di `artifacts/`) |
 | Notebook 8 · Model lain | ⬜ Belum |
 | Notebook 9 · *Threshold* dan data *test* | ⬜ Belum |
 | Notebook 10 · Menyimpan model | ⬜ Belum |
@@ -151,8 +151,10 @@ Suhu standar dari tim proses: PP 230/40 °C, ABS 240/60 °C, PC 300/90 °C (suhu
 
 | Model | PR-AUC *validation* | PR-AUC *test* |
 |---|---|---|
-| *Baseline*: regresi logistik (fitur asli) | | |
+| *Baseline*: regresi logistik (fitur asli) | 0,474 | |
 | | | |
+
+Patokan tebak acak: 0,078 (proporsi cacat). *Threshold* sementara *baseline*: 0,05 (biaya termurah di *validation*).
 
 | | |
 |---|---|
@@ -252,7 +254,8 @@ qc-injection-molding/
 └── requirements-dev.txt         # library aplikasi + notebook + pengujian
 ```
 
-Saat ini yang sudah ada: `data/`, `notebooks/`, `src/__init__.py`, `docs/`, dan file `requirements`. Folder lain dibuat
+Saat ini yang sudah ada: `data/`, `notebooks/`, `src/`, `artifacts/` (masih model *baseline*), `docs/`, dan file
+`requirements`. Folder lain dibuat
 sesuai alur di [PRD §14–15](docs/PRD.md#14-alur-pengerjaan-bagian-a--model).
 
 ## Cara menjalankan
