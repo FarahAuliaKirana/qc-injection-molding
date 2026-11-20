@@ -101,10 +101,13 @@ Notebook `notebooks/qc_injection_molding.ipynb` dijalankan dengan *Restart & Run
 
 ## Deploy
 
+Saat ini aplikasi di-deploy ke Streamlit Community Cloud **tanpa API terpisah** (Mode A): aplikasi memuat
+`artifacts/model.joblib` sendiri dan memakai validasi, saran, dan peringatan yang sama dengan API.
+
 | Bagian | Layanan | Pengaturan |
 |---|---|---|
-| API | Render (*free*) | *New → Blueprint*, pilih repositori ini. Pengaturan ada di `render.yaml`: Python 3.12.10, *build* `pip install -r requirements.txt`, *start* `uvicorn app.api.main:app --host 0.0.0.0 --port $PORT`, *health check* `/health` |
-| Aplikasi | Streamlit Community Cloud | *Main file* `app/ui/streamlit_app.py`, *Advanced settings* → Python 3.12, *Secrets* `API_URL = "https://<alamat-api>.onrender.com"` |
+| Aplikasi | Streamlit Community Cloud | *Main file* `app/ui/streamlit_app.py`, *Advanced settings* → Python 3.12. *Secrets* dikosongkan |
+| API (opsional) | Render (*free*) | *New → Blueprint*, pilih repositori ini. Pengaturan ada di `render.yaml`: Python 3.12.10, *build* `pip install -r requirements.txt`, *start* `uvicorn app.api.main:app --host 0.0.0.0 --port $PORT`, *health check* `/health`. Setelah online, isi *Secrets* aplikasi dengan `API_URL = "https://<alamat-api>.onrender.com"` supaya aplikasi memakai API (Mode B) |
 
 Layanan gratis "tidur" jika lama tidak dipakai, sehingga permintaan pertama bisa memakan waktu sampai sekitar satu
 menit. Buka aplikasi beberapa menit sebelum demo.

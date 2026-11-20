@@ -163,9 +163,11 @@ if st.button("Periksa", type="primary", width="stretch"):
 
         if jenis == "B":
             st.caption(f"Mode B: dihitung oleh API · model {hasil['versi_model']}")
-        else:
+        elif API_URL:
             st.caption(f"Mode A: dihitung langsung di aplikasi karena API tidak bisa dihubungi · "
                        f"model {hasil['versi_model']}")
+        else:
+            st.caption(f"Mode A: dihitung langsung di aplikasi · model {hasil['versi_model']}")
 
 with st.expander("Tentang model"):
     md = ambil_metadata()
