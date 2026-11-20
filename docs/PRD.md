@@ -404,15 +404,15 @@ disimpan sebagai konstanta di `app/api/saran.py` supaya mudah disesuaikan.
 | S2 | \|suhu cetakan − standar bahan\| > 10 °C | Sesuaikan suhu cetakan ke ±5 °C dari standar | Pola U, §4.2 |
 | S3 | Bahan ABS atau PC dan kelembaban > 0,15% | **Prioritas:** keringkan bahan sampai di bawah 0,10% | Lonjakan cacat, §4.3 |
 | S4 | Bahan ABS atau PC dan kelembaban 0,10–0,15% | Pertimbangkan pengeringan tambahan | Mulai naik, §4.3 |
-| S5 | Tekanan < 800 bar (sementara) | Naikkan tekanan injeksi ke sekitar 850 bar atau lebih | Lutut tekanan, §4.4 |
+| S5 | Tekanan < 850 bar | Naikkan tekanan injeksi ke 850 bar atau lebih | Lutut tekanan, §4.4 |
 | S6 | Waktu pendinginan < 13 detik | Perpanjang waktu pendinginan ke 13 detik atau lebih | §4.4 |
 | S7 | Mesin IM-03 | Laporkan ke perawatan: IM-03 cenderung 6 °C lebih panas dan lebih sering cacat | §4.5 |
 | S8 | Keputusan `PISAHKAN` tetapi tidak ada aturan S1–S6 yang terpicu | Pisahkan dan periksa manual. Parameter tampak normal, kemungkinan ada faktor lain | — |
 
 Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 
-Batas tekanan S5 belum final. Di tahap A4, A membandingkan 800 dan 850 bar, lalu angka yang terpilih dipakai sama di
-fitur, aturan S5, dan README.
+Batas tekanan S5 sama dengan `TEKANAN_CUKUP_BAR` di `src/features.py`, yaitu 850 bar. Di notebook bagian 8.2, batas 800
+dan 850 bar sama baiknya bagi model, dan 850 bar sesuai titik ketika persentase cacat mulai datar.
 
 ## 13. Pembagian peran
 
@@ -777,7 +777,7 @@ flowchart LR
 | D6 | Mana yang benar, label `shift` atau jam di `waktu_produksi`? | Ditanyakan ke klien | Terbuka |
 | D7 | Apa penyebab fisik IM-03 lebih sering cacat? | Ditanyakan ke klien | Terbuka |
 | D8 | Versi Python | Bersama | Selesai: 3.12 |
-| D9 | Batas tekanan untuk fitur dan saran S5 (800 atau 850 bar) | A | Diuji di tahap A4 |
+| D9 | Batas tekanan untuk fitur dan saran S5 (800 atau 850 bar) | A | Selesai: 850 bar |
 | D10 | Mode aplikasi | B | Selesai: Mode B, dengan Mode A sebagai cadangan |
 | D11 | Kapan deploy pertama? | B | Selesai: sebelum titik periksa 2, pakai *baseline* |
 

@@ -55,7 +55,7 @@ Rincian tanggung jawab dan alur pengerjaan setiap bagian ada di [PRD §13–15](
 | Notebook 5 · Fitur (`src/features.py`) | ✅ Selesai |
 | Notebook 6 · Pembagian data | ✅ Selesai |
 | Notebook 7 · *Baseline* regresi logistik | ✅ Selesai (artefak *baseline* v0.1.0 di `artifacts/`) |
-| Notebook 8 · Model lain | ⬜ Belum |
+| Notebook 8 · Model lain | ✅ Selesai |
 | Notebook 9 · *Threshold* dan data *test* | ⬜ Belum |
 | Notebook 10 · Menyimpan model | ⬜ Belum |
 | API (FastAPI) | ⬜ Belum |
@@ -152,7 +152,8 @@ Suhu standar dari tim proses: PP 230/40 °C, ABS 240/60 °C, PC 300/90 °C (suhu
 | Model | PR-AUC *validation* | PR-AUC *test* |
 |---|---|---|
 | *Baseline*: regresi logistik (fitur asli) | 0,474 | |
-| | | |
+| Regresi logistik + fitur dari pengetahuan proses | 0,605 | |
+| **XGBoost + fitur dari pengetahuan proses (`max_depth` 2)** | **0,655** | |
 
 Patokan tebak acak: 0,078 (proporsi cacat). *Threshold* sementara *baseline*: 0,05 (biaya termurah di *validation*).
 
