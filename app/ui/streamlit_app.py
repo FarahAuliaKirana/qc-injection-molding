@@ -3,6 +3,7 @@
 Mode B (utama):    mengirim masukan ke API (API_URL di .streamlit/secrets.toml).
 Mode A (cadangan): kalau API_URL kosong atau API tidak bisa dihubungi, model dimuat dan dijalankan di sini.
 """
+import logging
 import os
 import sys
 from pathlib import Path
@@ -19,6 +20,14 @@ from app.api import model as penyimpan_model  # noqa: E402
 from app.api.model import LABEL  # noqa: E402
 from app.api.schemas import BAHAN, MESIN, MasukanSiklus, terjemahkan_galat  # noqa: E402
 from src.features import SUHU_STANDAR  # noqa: E402
+
+# log prediksi Mode A tampil di log server Streamlit (Manage app > Logs)
+_log_prediksi = logging.getLogger("app.api.prediksi")
+_log_prediksi.setLevel(logging.INFO)
+if not _log_prediksi.handlers and not logging.getLogger().handlers:
+    _penangan = logging.StreamHandler()
+    _penangan.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+    _log_prediksi.addHandler(_penangan)
 
 TIMEOUT_DETIK = 60  # hosting gratis bisa "tidur" dan butuh waktu untuk bangun (cold start)
 

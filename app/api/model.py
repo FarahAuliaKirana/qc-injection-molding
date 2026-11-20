@@ -10,12 +10,15 @@ import math
 import os
 import sys
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 import joblib
 import pandas as pd
 
 log = logging.getLogger(__name__)
+# setiap prediksi dicatat di sini, baik lewat API (Mode B) maupun langsung di Streamlit (Mode A)
+log_prediksi = logging.getLogger("app.api.prediksi")
 
 # root repo: app/api/model.py -> naik dua folder
 ROOT = Path(__file__).resolve().parents[2]
@@ -101,7 +104,7 @@ def prediksi(masukan: dict, m: ModelTermuat) -> dict:
 
     threshold = float(md["threshold"])
     keputusan = "PISAHKAN" if peluang >= threshold else "LOLOS"
-    return {
+    hasil = {
         "probabilitas_cacat": round(peluang, 4),
         "keputusan": keputusan,
         "threshold": threshold,
@@ -109,3 +112,6 @@ def prediksi(masukan: dict, m: ModelTermuat) -> dict:
         "peringatan": buat_peringatan(masukan, md),
         "versi_model": md["versi_model"],
     }
+    log_prediksi.info(json.dumps({"waktu": datetime.now().isoformat(timespec="seconds"),
+                                  "masukan": masukan, "hasil": hasil}, ensure_ascii=False))
+    return hasil

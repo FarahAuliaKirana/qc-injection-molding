@@ -1,8 +1,6 @@
 """Aplikasi FastAPI. Jalankan dari root repo: uvicorn app.api.main:app --reload"""
-import json
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -13,7 +11,7 @@ from app.api.schemas import HasilPrediksi, MasukanSiklus, terjemahkan_galat
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("app.api")
-log_prediksi = logging.getLogger("app.api.prediksi")
+
 
 def model_belum_ada() -> JSONResponse:
     return JSONResponse(status_code=503, content={"detail": "Model belum tersedia."})
@@ -75,8 +73,5 @@ def predict(masukan: MasukanSiklus, request: Request):
     if not m.siap:
         return model_belum_ada()
 
-    data = masukan.model_dump()
-    hasil = penyimpan_model.prediksi(data, m)
-    log_prediksi.info(json.dumps({"waktu": datetime.now().isoformat(timespec="seconds"),
-                                  "masukan": data, "hasil": hasil}, ensure_ascii=False))
-    return hasil
+    # prediksi() juga mencatat masukan, hasil, dan waktunya ke log
+    return penyimpan_model.prediksi(masukan.model_dump(), m)
