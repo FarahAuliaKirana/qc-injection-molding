@@ -52,7 +52,7 @@ Rincian tanggung jawab dan alur pengerjaan setiap bagian ada di [PRD §13–15](
 | Notebook 2 · Mengenal data | ✅ Selesai |
 | Notebook 3 · Membersihkan data | ✅ Selesai |
 | Notebook 4 · EDA terhadap target | ✅ Selesai |
-| Notebook 5 · Fitur (`src/features.py`) | ⬜ Belum |
+| Notebook 5 · Fitur (`src/features.py`) | ✅ Selesai |
 | Notebook 6 · Pembagian data | ⬜ Belum |
 | Notebook 7 · *Baseline* regresi logistik | ⬜ Belum |
 | Notebook 8 · Model lain | ⬜ Belum |
