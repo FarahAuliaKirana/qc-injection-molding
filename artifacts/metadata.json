@@ -1,6 +1,6 @@
 {
   "versi_model": "1.0.0",
-  "tanggal_latih": "2026-11-20",
+  "tanggal_latih": "2026-11-21",
   "nama_model": "XGBoost dengan fitur dari pengetahuan proses (max_depth 2)",
   "fitur_masukan": [
     "mesin",
