@@ -15,7 +15,7 @@ dan urutan pengerjaannya. Jika ada keputusan yang berubah, perbarui dokumen ini 
 
 1. [Ringkasan](#1-ringkasan)
 2. [Latar belakang dan masalah](#2-latar-belakang-dan-masalah)
-3. [Tujuan dan non-tujuan](#3-tujuan-dan-non-tujuan)
+3. [Tujuan dan batasan](#3-tujuan-dan-batasan)
 4. [Pengguna dan skenario pemakaian](#4-pengguna-dan-skenario-pemakaian)
 5. [Ruang lingkup](#5-ruang-lingkup)
 6. [Kebutuhan fungsional](#6-kebutuhan-fungsional)
@@ -41,16 +41,16 @@ dan urutan pengerjaannya. Jika ada keputusan yang berubah, perbarui dokumen ini 
 ## 1. Ringkasan
 
 Pabrik komponen plastik klien baru mengetahui komponen cacat saat inspeksi visual di akhir shift. Kami membangun
-sistem yang menerima parameter dari **satu siklus cetak** (bahan, mesin, dan parameter proses), lalu mengembalikan
-**probabilitas komponen tersebut cacat**, **keputusan** (pisahkan atau lolos) berdasarkan *threshold* yang dipilih
-dari pertimbangan biaya, serta **saran tindakan** yang bisa langsung dikerjakan operator.
+sistem yang menerima parameter dari satu siklus cetak (bahan, mesin, dan parameter proses), lalu memberi tiga hal:
+probabilitas komponen itu cacat, keputusan pisahkan atau lolos berdasarkan *threshold* yang dipilih dari biaya, dan
+saran tindakan yang bisa langsung dikerjakan operator.
 
 Sistem terdiri dari tiga lapis:
 
-1. **Notebook** untuk EDA, pembersihan data, pembuatan fitur, pelatihan, dan evaluasi model. Hasilnya
+1. Notebook untuk EDA, pembersihan data, pembuatan fitur, pelatihan, dan evaluasi model. Hasilnya
    `src/features.py`, `artifacts/model.joblib`, dan `artifacts/metadata.json`.
-2. **API (FastAPI)** yang memuat model, memvalidasi masukan, dan menghitung prediksi serta saran.
-3. **Aplikasi web (Streamlit)** untuk operator. Aplikasi ini memanggil API dan bisa dibuka dari ponsel. Kalau API sedang
+2. API (FastAPI) yang memuat model, memvalidasi masukan, dan menghitung prediksi serta saran.
+3. Aplikasi web (Streamlit) untuk operator. Aplikasi ini memanggil API dan bisa dibuka dari ponsel. Kalau API sedang
    tidak bisa dihubungi, aplikasi memakai model secara langsung.
 
 ## 2. Latar belakang dan masalah
@@ -62,7 +62,7 @@ Sistem terdiri dari tiga lapis:
 - Data historis tersedia: 25.350 siklus dari empat mesin (IM-01 sampai IM-04) selama Maret–Juni 2026, dengan sekitar
   8% komponen cacat. Data diekspor apa adanya dan berisi banyak masalah kualitas (lihat [§8](#8-data)).
 
-## 3. Tujuan dan non-tujuan
+## 3. Tujuan dan batasan
 
 ### Tujuan
 
@@ -72,9 +72,9 @@ Sistem terdiri dari tiga lapis:
 | G2 | Keputusan "pisahkan atau lolos" mempertimbangkan biaya nyata | *Threshold* dipilih dari biaya di brief (FN Rp500.000, FP Rp25.000), dengan alasan tertulis |
 | G3 | Operator bisa memakai sistem langsung di lantai produksi | Aplikasi bisa dibuka lewat tautan, termasuk dari ponsel, dan memberi jawaban dalam hitungan detik |
 | G4 | Sistem tahan terhadap masukan yang tidak wajar | Tidak ada masukan yang membuat API atau aplikasi berhenti mendadak |
-| G5 | Hasil bisa diulang dan diperiksa | Notebook bisa dijalankan ulang dari awal tanpa galat, dan versi library dikunci |
+| G5 | Hasil bisa diulang dan diperiksa | Notebook bisa dijalankan ulang dari awal tanpa error, dan versi library dikunci |
 
-### Non-tujuan
+### Yang tidak dikerjakan
 
 - Tidak menghubungkan sistem langsung ke PLC atau sensor mesin. Masukan diisi manual oleh operator.
 - Tidak mendeteksi **jenis** cacat, karena data hanya berisi label cacat atau tidak cacat.
@@ -126,7 +126,7 @@ Sistem terdiri dari tiga lapis:
 | FR-06 | Model final disimpan sebagai `artifacts/model.joblib` beserta `artifacts/metadata.json` ([§11.6–11.7](#116-artifactsmodeljoblib)) | A |
 | FR-07 | API menyediakan `GET /health`, `GET /metadata`, dan `POST /predict` ([§11.3](#113-endpoint)) | B |
 | FR-08 | API memvalidasi masukan: tipe, batas fisik, nilai kategori, dan logika antarkolom ([§11.1](#111-skema-masukan)) | B |
-| FR-09 | API menormalkan penulisan kategori, misalnya `pp`, `P.P`, `PP ` menjadi `PP`, dan `im-01` menjadi `IM-01` | B |
+| FR-09 | API menyeragamkan penulisan kategori, misalnya `pp`, `P.P`, `PP ` menjadi `PP`, dan `im-01` menjadi `IM-01` | B |
 | FR-10 | API menerima nilai kosong untuk kolom opsional dan menambahkan peringatan bahwa prediksi kurang akurat | B |
 | FR-11 | API memberi peringatan jika ada nilai di luar rentang data latih (prediksi tetap dikembalikan) | B |
 | FR-12 | API menghasilkan saran tindakan sesuai [§12](#12-aturan-saran-tindakan) | B |
@@ -140,7 +140,7 @@ Sistem terdiri dari tiga lapis:
 
 | Kode | Kebutuhan |
 |---|---|
-| NFR-01 | **Ketahanan.** Tidak ada masukan yang menghasilkan galat 500 atau membuat aplikasi berhenti. Semua kesalahan masukan dijawab dengan kode 422 dan pesan berbahasa Indonesia. |
+| NFR-01 | **Ketahanan.** Tidak ada masukan yang menghasilkan error 500 atau membuat aplikasi berhenti. Semua kesalahan masukan dijawab dengan kode 422 dan pesan berbahasa Indonesia. |
 | NFR-02 | **Konsistensi.** Semua memakai Python 3.12. Versi library di lingkungan pelatihan, API, dan deploy sama dengan `requirements.txt`, dan versi Python serta library dicatat di `metadata.json`. |
 | NFR-03 | **Tanpa kebocoran data.** Duplikat dihapus sebelum *split*. Imputasi dan *scaling* dipelajari hanya dari data *train* di dalam *pipeline*. |
 | NFR-04 | **Reproduksibilitas.** `RANDOM_STATE = 42`. Notebook bisa dijalankan ulang dari awal sampai akhir dengan kernel `.venv`. |
@@ -234,7 +234,7 @@ Alur satu prediksi:
 
 1. Operator mengisi form di Streamlit, lalu menekan tombol **Periksa**.
 2. Streamlit mengirim JSON ke `POST /predict` di API. URL API diambil dari `st.secrets["API_URL"]`.
-3. API memvalidasi dan menormalkan masukan, lalu membentuk `DataFrame` satu baris dengan urutan kolom dari
+3. API memeriksa dan menyeragamkan masukan, lalu membentuk `DataFrame` satu baris dengan urutan kolom dari
    `metadata.json`.
 4. `model.predict_proba` menghasilkan probabilitas cacat. Pembuatan fitur dan imputasi terjadi di dalam *pipeline*.
 5. API membandingkan probabilitas dengan *threshold*, menyusun saran ([§12](#12-aturan-saran-tindakan)) dan
@@ -255,8 +255,8 @@ dengan model sementara, dan model final dari A tinggal dipasang tanpa mengubah k
 
 | Kolom | Tipe | Wajib | Batas keras (di luar ini ditolak, 422) | Rentang data latih (di luar ini diberi peringatan) |
 |---|---|---|---|---|
-| `mesin` | teks | ya | `IM-01`, `IM-02`, `IM-03`, `IM-04` (dinormalkan) | — |
-| `bahan` | teks | ya | `PP`, `ABS`, `PC` (dinormalkan) | — |
+| `mesin` | teks | ya | `IM-01`, `IM-02`, `IM-03`, `IM-04` (penulisan diseragamkan) | Tidak berlaku |
+| `bahan` | teks | ya | `PP`, `ABS`, `PC` (penulisan diseragamkan) | Tidak berlaku |
 | `suhu_leleh_C` | angka | ya | 150–400 | 194,9–336,9 |
 | `suhu_cetakan_C` | angka | ya | 0–150 | 8,0–113,7 |
 | `kecepatan_injeksi_mm_s` | angka | ya | > 0 dan ≤ 300 | 25,6–139,2 |
@@ -328,7 +328,7 @@ Angka pada contoh di atas hanya ilustrasi.
 | `POST` | `/predict` | Prediksi satu siklus | Skema [§11.2](#112-keluaran-post-predict) |
 | `GET` | `/docs` | Dokumentasi otomatis FastAPI | Halaman Swagger |
 
-### 11.4 Kode galat
+### 11.4 Kode error
 
 | Kode | Kapan | Isi |
 |---|---|---|
@@ -407,10 +407,10 @@ disimpan sebagai konstanta di `app/api/saran.py` supaya mudah disesuaikan.
 | S2 | \|suhu cetakan − standar bahan\| > 10 °C | Sesuaikan suhu cetakan ke ±5 °C dari standar | Pola U, §4.2 |
 | S3 | Bahan ABS atau PC dan kelembaban > 0,15% | **Prioritas:** keringkan bahan sampai di bawah 0,10% | Lonjakan cacat, §4.3 |
 | S4 | Bahan ABS atau PC dan kelembaban 0,10–0,15% | Pertimbangkan pengeringan tambahan | Mulai naik, §4.3 |
-| S5 | Tekanan < 850 bar | Naikkan tekanan injeksi ke 850 bar atau lebih | Lutut tekanan, §4.4 |
+| S5 | Tekanan < 850 bar | Naikkan tekanan injeksi ke 850 bar atau lebih | Cacat turun sampai sekitar 850 bar, lalu datar, §4.4 |
 | S6 | Waktu pendinginan < 13 detik | Perpanjang waktu pendinginan ke 13 detik atau lebih | §4.4 |
 | S7 | Mesin IM-03 | Laporkan ke perawatan: IM-03 cenderung 6 °C lebih panas dan lebih sering cacat | §4.5 |
-| S8 | Keputusan `PISAHKAN` tetapi tidak ada aturan S1–S6 yang terpicu | Pisahkan dan periksa manual. Parameter tampak normal, kemungkinan ada faktor lain | — |
+| S8 | Keputusan `PISAHKAN` tetapi tidak ada aturan S1–S6 yang terpicu | Pisahkan dan periksa manual. Parameter tampak normal, kemungkinan ada faktor lain | Tidak ada temuan khusus |
 
 Urutan tampil: saran berstatus prioritas lebih dulu, lalu sesuai urutan kode.
 
@@ -448,7 +448,7 @@ perubahan dianggap selesai. Pembagian ini mencegah konflik, terutama pada file n
 ### A1 · Bagian 5: fitur dari pengetahuan proses
 
 - Tulis `buat_fitur` sesuai [§11.5](#115-srcfeaturespy) di sel notebook dengan `%%writefile ../src/features.py`.
-- Impor ulang dari `src.features`, lalu uji: jumlah baris tetap, DataFrame asli tidak berubah, NaN tidak membuat galat,
+- Impor ulang dari `src.features`, lalu uji: jumlah baris tetap, DataFrame asli tidak berubah, NaN tidak menimbulkan error,
   dan nilai fitur sesuai hitungan manual untuk beberapa baris.
 - Tambahkan sel ✅ Cek bagian 5.
 - *Push* lebih awal supaya B bisa memakai konstanta dan menulis tes fitur (titik **M1**).
@@ -573,8 +573,8 @@ tests/
 
 ### B3 · Skema dan validasi masukan
 
-- `schemas.py`: `MasukanSiklus` dengan semua batas keras [§11.1](#111-skema-masukan), validator untuk normalisasi
-  `mesin` dan `bahan`, validator antarkolom (siklus > pendinginan), dan pesan °F untuk suhu di atas 400.
+- `schemas.py`: `MasukanSiklus` dengan semua batas keras [§11.1](#111-skema-masukan), validator untuk menyeragamkan
+  penulisan `mesin` dan `bahan`, validator antarkolom (siklus > pendinginan), dan pesan °F untuk suhu di atas 400.
 - `HasilPrediksi` sesuai [§11.2](#112-keluaran-post-predict).
 - Ubah pesan 422 bawaan FastAPI menjadi daftar kolom dan pesan berbahasa Indonesia.
 
@@ -587,7 +587,7 @@ pesan yang jelas.
   `NaN`, panggil `predict_proba`, bandingkan dengan `threshold`, lalu susun `peringatan` (kolom opsional kosong dan
   nilai di luar `rentang_data_latih`).
 - `GET /metadata`: kembalikan versi model, *threshold*, metrik, dan daftar fitur.
-- Tambahkan *handler* galat umum supaya kesalahan tak terduga menjadi 500 tanpa *stack trace*.
+- Tambahkan *handler* error umum supaya kesalahan tak terduga menjadi 500 tanpa *stack trace*.
 - Catat setiap prediksi ke log (masukan, hasil, dan waktunya).
 - Taruh logika prediksi dan saran di satu modul, supaya Streamlit juga bisa memakainya saat Mode A.
 
@@ -646,9 +646,9 @@ Dikerjakan setelah **M2** dan **MB**, sebelum titik periksa 2 (aplikasi sudah ha
 
 **Selesai jika:** orang lain bisa membuka aplikasi dari tautan (titik **M4a**).
 
-**Realisasi:** model final sudah ada sebelum *deploy*, jadi aplikasi langsung online dengan model final. Hanya
-Streamlit yang di-*deploy* (Mode A), dari repositori ini oleh A karena Streamlit Community Cloud mensyaratkan hak
-admin repositori. `render.yaml` sudah disiapkan jika API perlu online nanti.
+**Realisasi:** model final sudah ada sebelum *deploy*, jadi aplikasi langsung online dengan model final. Yang
+di-*deploy* hanya Streamlit (Mode A). Tombol *deploy*-nya ditekan oleh A, karena Streamlit Community Cloud hanya
+mengizinkan admin repositori. Kalau API perlu online nanti, `render.yaml` sudah tersedia.
 
 ### B9 · Ganti ke model final
 
@@ -679,7 +679,7 @@ diganti. Pemeriksaan model dijalankan dengan `python scripts/cek_model.py`.
 | **M1** | `src/features.py` ada di `main` | B memakainya di B5 dan B6. B tidak terhambat karena memakai salinan sementara |
 | **MB** | Artefak *baseline* ada di `main` | B memakainya untuk deploy pertama |
 | **M2** | API dan aplikasi berjalan lokal dengan model *dummy*, `pytest` lolos | Tidak ada yang menunggu |
-| **M4a** | Aplikasi online dengan model *baseline* | — |
+| **M4a** | Aplikasi online dengan model *baseline* | Tidak ada |
 | **M3** | `artifacts/model.joblib` dan `metadata.json` final ada di `main` | B mulai B9 |
 | **M4** | Aplikasi online dengan model final dan lolos uji penerimaan | A memakai tautan untuk laporan |
 | **M5** | README lengkap, laporan, video, dan daftar periksa selesai | Bersama |
@@ -714,7 +714,7 @@ flowchart LR
 - Hanya pemilik area yang mengubah file di area itu ([§13](#13-pembagian-peran)). **Notebook hanya diubah oleh A**
   setelah bagian 4.
 - Selalu `git pull` sebelum mulai kerja dan sebelum push.
-- Pesan *commit* berbahasa Indonesia, singkat, dan menjelaskan isi, misalnya `API: validasi masukan dan pesan galat`.
+- Pesan *commit* berbahasa Indonesia, singkat, dan menjelaskan isi, misalnya `API: validasi masukan dan pesan error`.
 - *Commit* dibuat oleh anggota tim dengan akun GitHub masing-masing, dan email Git harus terdaftar di akun GitHub supaya
   tercatat sebagai kontributor. Jangan menambahkan *trailer* `Co-authored-by` untuk alat bantu.
 - `artifacts/` dan `data/bersih.csv` **wajib** di-commit. `data/bersih.csv` dipakai B untuk model *dummy* dan tes,
@@ -729,7 +729,7 @@ flowchart LR
 |---|---|---|
 | T1 | Contoh lengkap dan valid | 200, format sesuai [§11.2](#112-keluaran-post-predict) |
 | T2 | Kolom opsional dikosongkan (`null` atau tidak dikirim) | 200, `peringatan` menyebut kolom yang kosong |
-| T3 | `bahan` = `"pp"`, `"P.P"`, `" Abs "` | 200, dinormalkan |
+| T3 | `bahan` = `"pp"`, `"P.P"`, `" Abs "` | 200, penulisan diseragamkan |
 | T4 | `bahan` = `"XYZ"` atau `mesin` = `"IM-09"` | 422, pesan menyebut nilai yang diperbolehkan |
 | T5 | `suhu_leleh_C` = 615 | 422, pesan menyebut kemungkinan °F |
 | T6 | `tekanan_injeksi_bar` = 0 atau `waktu_siklus_s` = −1 | 422 |
@@ -743,7 +743,7 @@ flowchart LR
 
 ### Kriteria penerimaan akhir
 
-- [x] Notebook berjalan dari awal sampai akhir (*Restart & Run All*) dengan kernel `.venv` tanpa galat.
+- [x] Notebook berjalan dari awal sampai akhir (*Restart & Run All*) dengan kernel `.venv` tanpa error.
 - [x] PR-AUC *baseline* dan model final dilaporkan dan dibandingkan.
 - [x] Data *test* hanya dievaluasi sekali.
 - [x] `metadata.json` berisi versi model, fitur masukan, *threshold*, metrik, dan versi library.
@@ -773,7 +773,7 @@ flowchart LR
 | Model final terlambat | Aplikasi belum online saat titik periksa 2 | Deploy pertama pakai *baseline*, model final menyusul |
 | API di hosting gratis mati | Aplikasi tidak bisa memprediksi | Aplikasi pindah ke Mode A |
 | Ditanya "baris ini untuk apa?" | Tidak bisa menjawab | Masing-masing memahami kode bagiannya sendiri |
-| Masukan aneh membuat aplikasi berhenti | Melanggar daftar periksa | Validasi di API dan di form, *handler* galat umum, dan tes T1–T13 |
+| Masukan aneh membuat aplikasi berhenti | Melanggar daftar periksa | Validasi di API dan di form, *handler* error umum, dan tes T1–T13 |
 
 ## 21. Keputusan
 
