@@ -5,7 +5,7 @@
 | **Kasus** | 01 · Pengendalian Mutu *Injection Molding* |
 | **Repositori** | [FarahAuliaKirana/qc-injection-molding](https://github.com/FarahAuliaKirana/qc-injection-molding) |
 | **Tim** | Farah Aulia Kirana (Bagian A · Model) · Naufal Abhirama (Bagian B · Aplikasi) |
-| **Status dokumen** | Draf v2. Notebook bagian 1–10 selesai, model final v1.0.0 ada di `artifacts/` (titik M3). Aplikasi dikerjakan B |
+| **Status dokumen** | Draf v2. Notebook bagian 1–10 selesai, model final v1.0.0 ada di `artifacts/` (titik M3). API, aplikasi, dan pengujian selesai. Aplikasi online di Streamlit Community Cloud dengan model final (Mode A) |
 | **Terakhir diperbarui** | 20 November 2026 |
 
 Dokumen ini adalah acuan bersama tim: apa yang dibangun, untuk siapa, bagaimana bagian-bagiannya saling terhubung,
@@ -242,6 +242,9 @@ Alur satu prediksi:
 6. Streamlit menampilkan hasilnya.
 
 Kalau API tidak bisa dihubungi, langkah 3–5 dijalankan langsung di Streamlit (Mode A).
+
+Versi online saat ini hanya men-*deploy* Streamlit, tanpa API terpisah ([D2, D10](#21-keputusan)), sehingga selalu
+berjalan di Mode A. Validasi, saran, dan peringatannya tetap sama karena memakai modul yang sama dengan API.
 
 ## 11. Kontrak antarmuka
 
@@ -643,6 +646,10 @@ Dikerjakan setelah **M2** dan **MB**, sebelum titik periksa 2 (aplikasi sudah ha
 
 **Selesai jika:** orang lain bisa membuka aplikasi dari tautan (titik **M4a**).
 
+**Realisasi:** model final sudah ada sebelum *deploy*, jadi aplikasi langsung online dengan model final. Hanya
+Streamlit yang di-*deploy* (Mode A), dari repositori ini oleh A karena Streamlit Community Cloud mensyaratkan hak
+admin repositori. `render.yaml` sudah disiapkan jika API perlu online nanti.
+
 ### B9 · Ganti ke model final
 
 - Setelah **M3**, *pull* `main`. Artefak final menggantikan artefak *baseline* di `artifacts/`.
@@ -653,6 +660,9 @@ Dikerjakan setelah **M2** dan **MB**, sebelum titik periksa 2 (aplikasi sudah ha
 
 **Selesai jika:** aplikasi online memakai model final dan semua kriteria
 [§18](#18-pengujian-dan-kriteria-penerimaan) terpenuhi (titik **M4**).
+
+**Realisasi:** `saran.py` sejak awal meng-*import* konstanta dari `src.features`, jadi tidak ada salinan yang perlu
+diganti. Pemeriksaan model dijalankan dengan `python scripts/cek_model.py`.
 
 ### B10 · Dokumen
 
@@ -733,15 +743,15 @@ flowchart LR
 
 ### Kriteria penerimaan akhir
 
-- [ ] Notebook berjalan dari awal sampai akhir (*Restart & Run All*) dengan kernel `.venv` tanpa galat.
-- [ ] PR-AUC *baseline* dan model final dilaporkan dan dibandingkan.
-- [ ] Data *test* hanya dievaluasi sekali.
-- [ ] `metadata.json` berisi versi model, fitur masukan, *threshold*, metrik, dan versi library.
-- [ ] `pytest` lolos semua.
+- [x] Notebook berjalan dari awal sampai akhir (*Restart & Run All*) dengan kernel `.venv` tanpa galat.
+- [x] PR-AUC *baseline* dan model final dilaporkan dan dibandingkan.
+- [x] Data *test* hanya dievaluasi sekali.
+- [x] `metadata.json` berisi versi model, fitur masukan, *threshold*, metrik, dan versi library.
+- [x] `pytest` lolos semua.
 - [ ] Aplikasi bisa dibuka orang lain melalui tautan, termasuk dari ponsel.
 - [ ] Kasus T1–T13 diuji ulang di versi yang sudah ter-deploy.
-- [ ] Aplikasi tetap memberi prediksi lewat Mode A ketika API tidak bisa dihubungi.
-- [ ] Repositori publik dan setiap anggota memiliki *commit*.
+- [x] Aplikasi tetap memberi prediksi lewat Mode A ketika API tidak bisa dihubungi.
+- [x] Repositori publik dan setiap anggota memiliki *commit*.
 - [ ] Laporan paling banyak 6 halaman dan video paling lama 5 menit.
 
 ## 19. Laporan dan video
@@ -770,7 +780,7 @@ flowchart LR
 | No | Pertanyaan | Pemilik | Status |
 |---|---|---|---|
 | D1 | Berapa biaya FN (komponen cacat lolos) dan FP (komponen bagus dibuang)? | A | Selesai: Rp500.000 dan Rp25.000 (dari brief) |
-| D2 | Hosting API: Render, Hugging Face Spaces, atau lainnya? | B | Belum diputuskan |
+| D2 | Hosting API: Render, Hugging Face Spaces, atau lainnya? | B | Selesai: API belum di-*deploy*. Aplikasi di Streamlit Community Cloud. Jika API perlu online, pakai Render (`render.yaml`) |
 | D3 | Proporsi *train*, *validation*, dan *test* | A | Selesai: 60/20/20 |
 | D4 | Apakah model final dilatih ulang dengan *train* + *validation*? | A | Selesai: tidak |
 | D5 | Nama proyek dan nama tim | Bersama | Belum diputuskan |
@@ -778,8 +788,8 @@ flowchart LR
 | D7 | Apa penyebab fisik IM-03 lebih sering cacat? | Ditanyakan ke klien | Terbuka |
 | D8 | Versi Python | Bersama | Selesai: 3.12 |
 | D9 | Batas tekanan untuk fitur dan saran S5 (800 atau 850 bar) | A | Selesai: 850 bar |
-| D10 | Mode aplikasi | B | Selesai: Mode B, dengan Mode A sebagai cadangan |
-| D11 | Kapan deploy pertama? | B | Selesai: sebelum titik periksa 2, pakai *baseline* |
+| D10 | Mode aplikasi | B | Selesai: kode mendukung Mode B dan Mode A. Versi online memakai Mode A karena API belum di-*deploy* |
+| D11 | Kapan deploy pertama? | B | Selesai: sebelum titik periksa 2, langsung dengan model final karena sudah tersedia |
 | D12 | Model final | A | Selesai: XGBoost + fitur, `max_depth` 2, tanpa `scale_pos_weight` (peluang sesuai kenyataan) |
 
 ## 22. Glosarium

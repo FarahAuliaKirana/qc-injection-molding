@@ -1,6 +1,6 @@
 # QC Injection Molding · Peringatan Dini Komponen Cacat
 
-**Kasus:** 01 · Pengendalian Mutu *Injection Molding* · **Aplikasi:** (menyusul) · **Video:** (menyusul)
+**Kasus:** 01 · Pengendalian Mutu *Injection Molding* · **Aplikasi:** [appapppy-i3hkh8fw4mxexzbfw8nn8x.streamlit.app](https://appapppy-i3hkh8fw4mxexzbfw8nn8x.streamlit.app/) · **Video:** (menyusul)
 
 | Anggota | NIM | Bagian yang dikerjakan |
 |---|---|---|
@@ -150,5 +150,5 @@ docs/PRD.md     dokumen kebutuhan dan pembagian kerja tim
 - [x] Data *test* hanya dibuka satu kali, di akhir
 - [x] `artifacts/metadata.json` berisi versi model, fitur masukan, *threshold*, dan metrik
 - [ ] Aplikasi dapat dibuka orang lain melalui tautan, termasuk dari ponsel
-- [ ] Aplikasi tidak berhenti mendadak ketika menerima masukan yang tidak wajar
+- [x] Aplikasi tidak berhenti mendadak ketika menerima masukan yang tidak wajar
 - [ ] Laporan paling banyak 6 halaman dan video paling lama 5 menit
