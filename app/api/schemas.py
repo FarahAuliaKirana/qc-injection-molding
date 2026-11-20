@@ -74,7 +74,7 @@ class MasukanSiklus(BaseModel):
         # info.data berisi kolom yang sudah lolos diperiksa sebelumnya (waktu_pendinginan_s ada di atas)
         pendinginan = info.data.get("waktu_pendinginan_s")
         if nilai is not None and pendinginan is not None and nilai <= pendinginan:
-            raise ValueError(f"harus lebih besar dari waktu_pendinginan_s ({pendinginan:g} detik), "
+            raise ValueError(f"harus lebih lama dari waktu pendinginan ({pendinginan:g} detik), "
                              f"karena pendinginan adalah bagian dari satu siklus")
         return nilai
 
