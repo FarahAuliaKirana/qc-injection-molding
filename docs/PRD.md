@@ -173,7 +173,7 @@ Sistem terdiri dari tiga lapis:
 | Temuan | Dampak pada desain |
 |---|---|
 | Cacat berbentuk **U** terhadap selisih suhu leleh dan suhu cetakan dari standar bahan (sekitar 4% dalam ±5 °C, sekitar 31% di atas +20 °C) | Fitur selisih suhu dan nilai mutlaknya. Aturan saran suhu |
-| Kelembaban hanya berpengaruh pada ABS dan PC, dengan ambang sekitar 0,10–0,15% (di atas 0,20%, sekitar 65% cacat) | Fitur kelembaban × higroskopis. Imputasi kelembaban per bahan. Aturan saran pengeringan |
+| Kelembaban hanya berpengaruh pada ABS dan PC, dengan ambang sekitar 0,10–0,15% (di atas 0,20%, sekitar 65% cacat) | Fitur kelembaban × higroskopis. Aturan saran pengeringan. Imputasi per bahan diuji di notebook bagian 7.3, tetapi hanya menaikkan PR-AUC 0,002, jadi tetap median gabungan |
 | Tekanan di bawah sekitar 760 bar menaikkan cacat menjadi sekitar 26%. Tekanan tinggi tidak bermasalah | Fitur kekurangan tekanan. Aturan saran tekanan |
 | Pendinginan di bawah sekitar 13 detik menaikkan cacat menjadi sekitar 14% | Aturan saran pendinginan |
 | Waktu siklus hanya mengikuti waktu pendinginan (korelasi 0,89) | Hati-hati membaca koefisien regresi logistik |
@@ -482,8 +482,8 @@ perubahan dianggap selesai. Pembagian ini mencegah konflik, terutama pada file n
   fitur domain membantu.
 - Coba tambah atau buang fitur satu per satu, lalu lihat PR-AUC *validation*-nya. Termasuk batas tekanan 800 atau
   850, dan pengisian kelembaban per bahan atau secara umum. Kabari B batas tekanan yang dipakai.
-- XGBoost (`scale_pos_weight` untuk data tidak seimbang), dengan penyetelan *hyperparameter* sederhana yang dinilai di
-  *validation* atau dengan *cross-validation* pada *train*.
+- XGBoost dengan penyetelan *hyperparameter* sederhana yang dinilai di *validation*. Periksa apakah `scale_pos_weight`
+  membuat peluang tidak sesuai kenyataan, karena peluang ditampilkan ke operator.
 - Tabel perbandingan PR-AUC *validation* semua model.
 - Pilih model final dan tuliskan alasannya. Jika sempat, periksa kalibrasi probabilitas (*reliability plot*).
 
@@ -780,6 +780,7 @@ flowchart LR
 | D9 | Batas tekanan untuk fitur dan saran S5 (800 atau 850 bar) | A | Selesai: 850 bar |
 | D10 | Mode aplikasi | B | Selesai: Mode B, dengan Mode A sebagai cadangan |
 | D11 | Kapan deploy pertama? | B | Selesai: sebelum titik periksa 2, pakai *baseline* |
+| D12 | Model final | A | Selesai: XGBoost + fitur, `max_depth` 2, tanpa `scale_pos_weight` (peluang sesuai kenyataan) |
 
 ## 22. Glosarium
 

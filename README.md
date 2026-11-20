@@ -153,7 +153,7 @@ Suhu standar dari tim proses: PP 230/40 °C, ABS 240/60 °C, PC 300/90 °C (suhu
 |---|---|---|
 | *Baseline*: regresi logistik (fitur asli) | 0,474 | |
 | Regresi logistik + fitur dari pengetahuan proses | 0,605 | |
-| **XGBoost + fitur dari pengetahuan proses (`max_depth` 2)** | **0,655** | |
+| **XGBoost + fitur dari pengetahuan proses (`max_depth` 2, tanpa `scale_pos_weight`)** | **0,658** | |
 
 Patokan tebak acak: 0,078 (proporsi cacat). *Threshold* sementara *baseline*: 0,05 (biaya termurah di *validation*).
 
