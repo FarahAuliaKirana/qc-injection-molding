@@ -5,7 +5,7 @@
 | **Kasus** | 01 · Pengendalian Mutu *Injection Molding* |
 | **Repositori** | [FarahAuliaKirana/qc-injection-molding](https://github.com/FarahAuliaKirana/qc-injection-molding) |
 | **Tim** | Farah Aulia Kirana (Bagian A · Model) · Naufal Abhirama (Bagian B · Aplikasi) |
-| **Status dokumen** | Draf v2. Notebook bagian 1–4 selesai, bagian 5–10 dan aplikasi belum dimulai |
+| **Status dokumen** | Draf v2. Notebook bagian 1–10 selesai, model final v1.0.0 ada di `artifacts/` (titik M3). Aplikasi dikerjakan B |
 | **Terakhir diperbarui** | 20 November 2026 |
 
 Dokumen ini adalah acuan bersama tim: apa yang dibangun, untuk siapa, bagaimana bagian-bagiannya saling terhubung,

@@ -1,7 +1,7 @@
 {
-  "versi_model": "0.1.0",
+  "versi_model": "1.0.0",
   "tanggal_latih": "2026-11-20",
-  "nama_model": "Baseline: regresi logistik dengan fitur asli",
+  "nama_model": "XGBoost dengan fitur dari pengetahuan proses (max_depth 2)",
   "fitur_masukan": [
     "mesin",
     "bahan",
@@ -62,18 +62,20 @@
       0.514
     ]
   },
-  "threshold": 0.05,
-  "alasan_threshold": "Total biaya termurah di data validation (FN Rp500.000, FP Rp25.000). Sementara untuk baseline.",
+  "threshold": 0.048,
+  "alasan_threshold": "Disisihkan jika peluang x Rp500.000 > (1 - peluang) x Rp25.000, yaitu peluang > 25.000 / 525.000 = 0,048. Dicek dengan kurva biaya di data validation.",
   "biaya": {
     "fn": 500000,
     "fp": 25000
   },
   "metrik": {
     "baseline_pr_auc_validation": 0.474,
-    "pr_auc_validation": 0.474,
-    "pr_auc_test": null,
-    "recall_test": null,
-    "precision_test": null
+    "baseline_pr_auc_test": 0.529,
+    "pr_auc_validation": 0.658,
+    "pr_auc_test": 0.708,
+    "recall_test": 0.907,
+    "precision_test": 0.278,
+    "biaya_test_rupiah": 40825000
   },
   "versi_library": {
     "python": "3.12.10",
