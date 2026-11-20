@@ -77,16 +77,37 @@ Tekanan, waktu pendinginan, waktu siklus, dan kelembaban boleh dikosongkan. Masu
 
 ## Cara menjalankan
 
-Pakai Python 3.12, lalu jalankan dari root repositori:
+Pakai Python 3.12. Buat dan aktifkan *virtual environment* dari root repositori:
 
 ```bash
+py -3.12 -m venv .venv                   # Windows (macOS/Linux: python3.12 -m venv .venv)
+.venv\Scripts\Activate.ps1               # Windows PowerShell (macOS/Linux: source .venv/bin/activate)
 pip install -r requirements-dev.txt      # library aplikasi, notebook, dan pengujian
-uvicorn app.api.main:app --reload       # API di http://127.0.0.1:8000/docs
-streamlit run app/ui/streamlit_app.py   # aplikasi di http://localhost:8501
-pytest                                  # pengujian
 ```
 
+Lalu, masing-masing di terminal sendiri dengan `.venv` aktif:
+
+```bash
+python -m uvicorn app.api.main:app --reload       # API di http://127.0.0.1:8000/docs
+python -m streamlit run app/ui/streamlit_app.py   # aplikasi di http://localhost:8501
+python -m pytest                                  # pengujian
+python scripts/cek_model.py                       # cek model di artifacts/ setelah diganti
+```
+
+Aplikasi membaca alamat API dari `.streamlit/secrets.toml` (salin dari `secrets.toml.example`). Jika `API_URL`
+kosong atau API tidak bisa dihubungi, aplikasi memuat model sendiri (Mode A), sehingga tetap bisa memprediksi.
+
 Notebook `notebooks/qc_injection_molding.ipynb` dijalankan dengan *Restart & Run All*.
+
+## Deploy
+
+| Bagian | Layanan | Pengaturan |
+|---|---|---|
+| API | Render (*free*) | *New → Blueprint*, pilih repositori ini. Pengaturan ada di `render.yaml`: Python 3.12.10, *build* `pip install -r requirements.txt`, *start* `uvicorn app.api.main:app --host 0.0.0.0 --port $PORT`, *health check* `/health` |
+| Aplikasi | Streamlit Community Cloud | *Main file* `app/ui/streamlit_app.py`, *Advanced settings* → Python 3.12, *Secrets* `API_URL = "https://<alamat-api>.onrender.com"` |
+
+Layanan gratis "tidur" jika lama tidak dipakai, sehingga permintaan pertama bisa memakan waktu sampai sekitar satu
+menit. Buka aplikasi beberapa menit sebelum demo.
 
 ## Struktur repositori
 
@@ -95,8 +116,13 @@ notebooks/      notebook dari EDA sampai penyimpanan model
 data/           data mentah (raw.csv) dan data bersih (bersih.csv)
 src/features.py fungsi pembuat fitur, dipakai saat pelatihan dan saat prediksi
 artifacts/      model.joblib + metadata.json
-app/            API (FastAPI) dan antarmuka (Streamlit)
-tests/          pengujian otomatis
+app/api/        API FastAPI: main.py (endpoint), schemas.py (validasi), model.py (memuat model dan prediksi),
+                saran.py (aturan saran S1–S8)
+app/ui/         aplikasi Streamlit untuk operator
+scripts/        model dummy untuk pengujian, dan pemeriksa model di artifacts/
+tests/          pengujian otomatis (API, saran, fitur, dan aplikasi)
+.streamlit/     contoh pengaturan alamat API
+render.yaml     pengaturan deploy API ke Render
 docs/PRD.md     dokumen kebutuhan dan pembagian kerja tim
 ```
 
